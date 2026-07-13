@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "hesk"
 version = "0.1.0"
-description = "HESK: Hierarchical Emergent System Kernel"
+description = "HESK: Heterogeneous Edge Swarm Consensus Kernel."
 authors = [
     { name = "Darsh Raj Pandey" }
 ]
