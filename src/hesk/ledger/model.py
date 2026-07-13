@@ -83,3 +83,53 @@ class StateExchangeMessage:
     version_vector: Dict[NodeId, int]
     entries: List[LedgerEntry]
     bandwidth_mode: BandwidthMode = BandwidthMode.DELTA
+
+class SideEffectType(Enum):
+    RELEASE_EXECUTOR = "RELEASE_EXECUTOR"
+    NOTIFY_WINNER = "NOTIFY_WINNER"
+
+@dataclass
+class ReconnectionEvent:
+    detecting_node: NodeId
+    remote_node: NodeId
+    detection_time: float
+    detecting_clock: int
+    remote_clock: int
+    
+@dataclass
+class DivergencePoint:
+    clock_value: int
+    local_events_since: int
+    remote_events_since: int
+
+@dataclass
+class SideEffect:
+    type: SideEffectType
+    target: NodeId
+    task: str
+
+@dataclass
+class Resolution:
+    strategy: str
+    winning_value: Any
+    winning_source: NodeId
+    reason: str
+    side_effects: List[SideEffect] = field(default_factory=list)
+
+@dataclass
+class Conflict:
+    key: str
+    local_entry: LedgerEntry
+    remote_entry: LedgerEntry
+    semantic_type: StateSemanticType
+    resolution: Optional[Resolution] = None
+
+@dataclass
+class ReconciliationTrace:
+    reconnection: ReconnectionEvent
+    divergence: DivergencePoint
+    conflicts_found: int
+    conflicts_resolved: int
+    resolution_details: List[Conflict]
+    entries_merged: int
+    duration_ms: float = 0.0
