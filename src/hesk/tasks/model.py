@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Dict, List, Set, Optional, Any
+from typing import Dict, List, Set, Optional, Any, Union
 from hesk.core.types import TaskId, NodeId, DimType, PriorityClass
 from hesk.capabilities.model import CapabilityState
 
@@ -96,3 +96,47 @@ class AllocationResult:
     runner_up_cost: Optional[float] = None
     bids_received: int = 0
     bids_expected: int = 0
+
+class TaskStatus:
+    EXECUTING = "EXECUTING"
+    DEGRADED = "DEGRADED"
+    ABANDONED = "ABANDONED"
+    COMPLETED = "COMPLETED"
+
+class ActiveTask:
+    """Runtime representation of a task being executed."""
+    def __init__(self, task_def: TaskDefinition, current_tier: int, status: str, assignee: Union[NodeId, 'Coalition', None] = None):
+        self.task_def = task_def
+        self.current_tier = current_tier
+        self.status = status
+        self.assignee = assignee
+
+    @property
+    def id(self) -> str:
+        return self.task_def.task_id
+
+    @property
+    def priority_class(self) -> PriorityClass:
+        return self.task_def.priority_class
+
+    @property
+    def priority(self) -> float:
+        return self.task_def.mission_priority
+
+    @property
+    def degradation_tiers(self) -> List[DegradationTier]:
+        return self.task_def.tiers
+
+    @property
+    def minimum_acceptable_quality(self) -> float:
+        return self.task_def.q_min
+
+    @property
+    def current_quality(self) -> float:
+        if self.status == TaskStatus.ABANDONED:
+            return 0.0
+        return self.degradation_tiers[self.current_tier].quality_estimate
+        
+    def with_tier(self, tier: DegradationTier):
+        """Helper to create a temporary task def pinned to a specific tier."""
+        return self.task_def

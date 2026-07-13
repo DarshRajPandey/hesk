@@ -178,13 +178,27 @@ def form_coalition(
         best_score = -1.0
         best_candidate = None
         
+        current_composed = compose_capabilities(coalition_members, required) if coalition_members else None
+        
         for n_k in available:
-            gaps_filled = 0
-            for d in gap_set:
-                if dimension_meets_threshold(n_k.get_dimension(d), required[d]):
-                    gaps_filled += 1
+            gaps_filled = 0.0
             
-            if gaps_filled == 0:
+            temp_members = coalition_members + [n_k]
+            temp_composed = compose_capabilities(temp_members, required)
+            
+            for d in gap_set:
+                val = temp_composed.composed_values.get(d)
+                if dimension_meets_threshold(val, required[d]):
+                    gaps_filled += 1.0
+                else:
+                    req = required[d]
+                    if req.dim_type == DimType.CAPACITY:
+                        old_val = current_composed.composed_values.get(d, 0.0) if current_composed else 0.0
+                        new_val = val if val is not None else 0.0
+                        if new_val > old_val and req.threshold and req.threshold > 0:
+                            gaps_filled += min((new_val - old_val) / req.threshold, 0.99)
+            
+            if gaps_filled <= 0:
                 continue
                 
             if coalition_members:
@@ -207,8 +221,9 @@ def form_coalition(
         available.remove(best_candidate)
         
         # Update gap set
+        new_composed = compose_capabilities(coalition_members, required)
         for d in list(gap_set):
-            if dimension_meets_threshold(best_candidate.get_dimension(d), required[d]):
+            if dimension_meets_threshold(new_composed.composed_values.get(d), required[d]):
                 gap_set.discard(d)
                 
     # Phase 2: Verification

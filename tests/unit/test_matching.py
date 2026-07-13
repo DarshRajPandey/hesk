@@ -72,8 +72,8 @@ class TestCapabilityMatching(unittest.TestCase):
         
         self.assertTrue(match_result.eligible)
         
-        # Confidence = exp(-45/30) = exp(-1.5)
-        expected_conf = math.exp(-1.5)
+        # Confidence = 0.5 ** (45/30) = 0.5 ** 1.5
+        expected_conf = 0.5 ** 1.5
         self.assertAlmostEqual(match_result.confidence, expected_conf)
         
         # Quality should remain same as self-evaluation

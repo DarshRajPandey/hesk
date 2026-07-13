@@ -59,7 +59,16 @@ def compute_scarcity_penalty(
         if dim in required_dimensions:
             continue  # Productive use, no penalty
             
-        theta = thetas.get(dim, 0.1)
+        theta = thetas.get(dim)
+        if theta is None:
+            # Dynamically compute theta as 10% of the max value in the swarm
+            max_val = 0.0
+            for n in swarm:
+                n_val = n.get_dimension(dim)
+                if isinstance(n_val, (int, float)) and n_val > max_val:
+                    max_val = float(n_val)
+            theta = max_val * 0.1 if max_val > 0 else 0.1
+            
         is_meaningful = False
         
         if isinstance(val, (int, float)) and val >= theta:

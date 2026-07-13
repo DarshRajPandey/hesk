@@ -50,7 +50,7 @@ def compare(node_value: Any, task_req: TaskRequirement) -> CompResult:
 def compute_confidence(age_s: float, t_half: float = DEFAULT_T_HALF, confidence_floor: float = DEFAULT_CONFIDENCE_FLOOR) -> float:
     if age_s <= 0.0:
         return 1.0
-    raw = math.exp(-age_s / t_half)
+    raw = 0.5 ** (age_s / t_half)
     if raw < confidence_floor:
         return 0.0
     return raw

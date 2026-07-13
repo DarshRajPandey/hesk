@@ -4,8 +4,8 @@ from collections import defaultdict
 
 from hesk.core.types import NodeId, PriorityClass
 from hesk.capabilities.model import CapabilityState
-from hesk.tasks.model import TaskDefinition, DegradationTier
-from hesk.capabilities.matching import check_eligibility
+from hesk.tasks.model import TaskDefinition, DegradationTier, TaskStatus, ActiveTask
+from hesk.capabilities.matching import check_eligibility, compute_match_quality
 from hesk.tasks.allocation import compute_system_cost
 
 from hesk.coalitions.model import Coalition
@@ -23,50 +23,6 @@ from hesk.degradation.model import (
 # Configuration defaults
 DEGRADATION_CASCADE_LIMIT = 3
 INFINITY = float('inf')
-
-class TaskStatus:
-    EXECUTING = "EXECUTING"
-    DEGRADED = "DEGRADED"
-    ABANDONED = "ABANDONED"
-    COMPLETED = "COMPLETED"
-
-class ActiveTask:
-    """Runtime representation of a task being executed."""
-    def __init__(self, task_def: TaskDefinition, current_tier: int, status: str, assignee: Union[NodeId, Coalition, None] = None):
-        self.task_def = task_def
-        self.current_tier = current_tier
-        self.status = status
-        self.assignee = assignee
-
-    @property
-    def id(self) -> str:
-        return self.task_def.task_id
-
-    @property
-    def priority_class(self) -> PriorityClass:
-        return self.task_def.priority_class
-
-    @property
-    def priority(self) -> float:
-        return self.task_def.mission_priority
-
-    @property
-    def degradation_tiers(self) -> List[DegradationTier]:
-        return self.task_def.tiers
-
-    @property
-    def minimum_acceptable_quality(self) -> float:
-        return self.task_def.q_min
-
-    @property
-    def current_quality(self) -> float:
-        if self.status == TaskStatus.ABANDONED:
-            return 0.0
-        return self.degradation_tiers[self.current_tier].quality_estimate
-        
-    def with_tier(self, tier: DegradationTier):
-        """Helper to create a temporary task def pinned to a specific tier."""
-        return self.task_def
 
 class LocalLedger:
     """Mock interface for local state ledger."""
@@ -140,13 +96,27 @@ def find_best_satisfaction_with_descent(
         # Try solo
         eligible = [n for n in available_list if check_eligibility(n, reqs)]
         if eligible:
-            # Need bids structure for compute_system_cost, using simple selection here
-            best = min(eligible, key=lambda n: 1.0) # simplify for now
-            return SatisfactionResult(
-                action=SatisfactionAction.SOLO_REASSIGN, 
-                assignee=best.node_id, 
-                tier=tier_idx
-            )
+            best_cost = INFINITY
+            best_node = None
+            
+            for n in eligible:
+                mq = compute_match_quality(n, tier.preferred)
+                cost = compute_system_cost(
+                    match_quality=mq,
+                    energy=1.0,
+                    base_consumption=10.0,
+                    scarcity_penalty=0.0
+                )
+                if cost < best_cost:
+                    best_cost = cost
+                    best_node = n
+                    
+            if best_node:
+                return SatisfactionResult(
+                    action=SatisfactionAction.SOLO_REASSIGN, 
+                    assignee=best_node.node_id, 
+                    tier=tier_idx
+                )
             
         # Try coalition
         coalition_result = form_coalition(
@@ -170,10 +140,54 @@ def attempt_upgrades(
     all_tasks: List[ActiveTask], 
     available: AvailableNodes, 
     link_metrics: LinkMetrics
-) -> List[Tuple[str, int, Union[NodeId, Coalition]]]:
+) -> List[Tuple[ActiveTask, int, Union[NodeId, Coalition]]]:
     """Check if any degraded task can be upgraded with currently available resources."""
     upgrades = []
-    # simplified upgrade logic
+    
+    degraded_tasks = [t for t in all_tasks if t.current_tier > 0 and t.status in [TaskStatus.EXECUTING, TaskStatus.DEGRADED]]
+    priority_order = {
+        PriorityClass.CRITICAL: 3,
+        PriorityClass.IMPORTANT: 2,
+        PriorityClass.OPTIONAL: 1
+    }
+    degraded_tasks.sort(key=lambda t: (priority_order.get(t.priority_class, 0), t.priority), reverse=True)
+    
+    for task in degraded_tasks:
+        for tier_idx in range(task.current_tier):
+            tier = task.degradation_tiers[tier_idx]
+            reqs = tier.required
+            available_list = available.get_list()
+            
+            eligible = [n for n in available_list if check_eligibility(n, reqs)]
+            if eligible:
+                best_cost = INFINITY
+                best_node = None
+                for n in eligible:
+                    mq = compute_match_quality(n, tier.preferred)
+                    cost = compute_system_cost(match_quality=mq, energy=1.0, base_consumption=10.0, scarcity_penalty=0.0)
+                    if cost < best_cost:
+                        best_cost = cost
+                        best_node = n
+                        
+                if best_node:
+                    upgrades.append((task, tier_idx, best_node.node_id))
+                    available.remove_commitment(best_node.node_id)
+                    break
+                    
+            coalition_result = form_coalition(
+                task_id=task.id,
+                required=reqs,
+                data_flows=tier.data_flow,
+                candidates=available_list,
+                link_metrics=link_metrics,
+                initiator_id="local_node"
+            )
+            if coalition_result.success:
+                upgrades.append((task, tier_idx, coalition_result.coalition))
+                for member in coalition_result.coalition.members:
+                    available.remove_commitment(member)
+                break
+                
     return upgrades
 
 def handle_degradation_trigger(
@@ -272,13 +286,32 @@ def handle_degradation_trigger(
                     reason="CRITICAL task abandoned — mission integrity compromised"
                 ))
                 
-    # Cascade logic (mock implementation for unit tests)
     cascade_round = 0
     while cascade_round < DEGRADATION_CASCADE_LIMIT:
         upgrades = attempt_upgrades(all_tasks, available_nodes, link_metrics)
         if not upgrades:
             break
-        # Process upgrades...
+            
+        for task, new_tier, new_assignee in upgrades:
+            tier_changes[task.id] = (task.current_tier, new_tier)
+            new_assignments[task.id] = new_assignee
+            
+            # Record trace
+            trace.append(TraceEntry(
+                timestamp=time.time(),
+                task_id=task.id, 
+                action=TraceAction.UPGRADE,
+                reason=f"Cascaded upgrade to tier {new_tier}",
+                old_tier=task.current_tier, 
+                new_tier=new_tier,
+                old_assignee=task.assignee,
+                new_assignee=new_assignee,
+                quality_change=(task.current_quality, task.degradation_tiers[new_tier].quality_estimate)
+            ))
+            
+            # If the task had old assignments, they should be released (mocked here by ignoring them for now, 
+            # since we don't have exact old assignment tracking in AvailableNodes)
+            
         cascade_round += 1
         
     utility_after = compute_swarm_utility_with_changes(all_tasks, tier_changes, abandoned)
