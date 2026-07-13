@@ -1,0 +1,14 @@
+README.md
+pyproject.toml
+src/hesk/__init__.py
+src/hesk.egg-info/PKG-INFO
+src/hesk.egg-info/SOURCES.txt
+src/hesk.egg-info/dependency_links.txt
+src/hesk.egg-info/requires.txt
+src/hesk.egg-info/top_level.txt
+src/hesk/capabilities/__init__.py
+src/hesk/capabilities/model.py
+src/hesk/core/__init__.py
+src/hesk/core/types.py
+src/hesk/tasks/__init__.py
+src/hesk/tasks/model.py
