@@ -1,38 +1,49 @@
 <div align="center">
   
-# 🚁 HESK
+# 🛸 HESK
 ### Heterogeneous Edge Swarm Consensus Kernel
 
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg?style=for-the-badge)](https://github.com/DarshRajPandey/hesk)
-[![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg?style=for-the-badge)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+[![Status](https://img.shields.io/badge/status-research%20prototype-7c3aed?style=for-the-badge)](https://github.com/DarshRajPandey/hesk)
+[![Python](https://img.shields.io/badge/python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![License](https://img.shields.io/badge/license-MIT-f5c518?style=for-the-badge)](LICENSE)
+[![Architecture](https://img.shields.io/badge/architecture-brokerless-111827?style=for-the-badge)](#system-invariants)
 
-*A decentralized coordination engine for heterogeneous autonomous systems operating in highly contested, communication-denied, and resource-constrained environments.*
-
-</div>
+*A capability-aware coordination kernel for heterogeneous autonomous swarms operating through resource loss, network partitions, and changing team composition.*
 
 <br/>
 
-> **The HESK Thesis:** How can a dynamic group of non-identical autonomous nodes preserve maximum mission utility as compute, energy, communication, and individual units are progressively lost in the field?
+`brokerless` · `partition-tolerant` · `graceful degradation` · `capability-aware`
 
-HESK rejects the standard assumption that swarm units are identical and networks are reliable. Instead, it serves as a resilient, brokerless brain sitting above the flight-controller layer (e.g., PX4, ArduPilot) to orchestrate complex tactical decisions when conditions deteriorate.
+</div>
+
+---
+
+## 📖 The Core Thesis
+
+Most swarm coordination becomes trivial if every robot is treated as interchangeable and networks are reliable. Real autonomous fleets are not interchangeable. 
+
+> **How can a changing group of non-identical autonomous nodes preserve maximum mission utility as compute, energy, sensing, communication, and individual nodes progressively become unavailable?**
+
+HESK is an attempt to make that question explicit, executable, and falsifiable. It treats the swarm not as a formation of identical drones, but as a **distributed resource system**. The objective is not to preserve every robot, but to preserve useful system capability as the swarm degrades.
 
 ---
 
 ## 🎖️ Defense & Tactical Applications
 
-HESK was fundamentally architected to address the realities of modern electronic warfare and contested domains. By prioritizing mathematically verifiable resilience over fragile centralization, HESK provides robust capabilities for defense applications:
+HESK was fundamentally architected to address the realities of modern electronic warfare (EW) and contested domains. By prioritizing mathematically verifiable resilience over fragile centralization, HESK provides robust capabilities for defense applications:
 
 | Capability | Tactical Advantage |
 | :--- | :--- |
-| **Electronic Warfare (EW) Resilience** | Operates exclusively on mathematically reconciled Local State Ledgers. If a swarm is fractured by jamming, sub-swarms continue executing their local missions independently. |
+| **Electronic Warfare (EW) Resilience** | Operates exclusively on mathematically reconciled Local State Ledgers. If a swarm is fractured by jamming, sub-swarms continue executing their local missions independently without waiting for central consensus. |
 | **Autonomous Reconstitution** | If a high-value ISR node is destroyed, HESK autonomously forms distributed capability-coalitions from surviving nodes to reconstruct the lost sensor coverage. |
-| **Semantic Information Degradation** | As bandwidth is throttled or jammed, HESK strategically drops high-bandwidth data (e.g., raw LiDAR) in favor of hyper-compressed semantic representations (e.g., coordinate points), ensuring critical targeting data always penetrates. |
-| **Attritable Heterogeneity** | Seamlessly mixes high-capability assets (Heavy Lift/Compute) with low-cost attritable drones. Tasks are mapped to the most expendable node capable of execution, preserving scarce capabilities. |
+| **Semantic Information Degradation** | As bandwidth is throttled or jammed, HESK strategically drops high-bandwidth data in favor of hyper-compressed semantic representations (e.g., coordinate points), ensuring critical targeting data always penetrates. |
+| **Attritable Heterogeneity** | Seamlessly mixes high-capability assets (Heavy Compute/Sensors) with low-cost attritable drones. Tasks are mapped to the most expendable node capable of execution, preserving scarce capabilities. |
 
 ---
 
-## ⚡ Architectural Pillars
+## ⚡ Architectural Pillars & Invariants
+
+HESK is governed by strict, non-negotiable architectural rules. No HESK node may read simulator-global truth to make an operational decision.
 
 <table align="center">
   <tr>
@@ -53,72 +64,194 @@ HESK was fundamentally architected to address the realities of modern electronic
 
 ---
 
+## 🛠️ Where HESK Sits
+
+HESK is **not a flight controller** (PX4), **not a physics simulator** (Isaac Sim), and **not robotics middleware** (ROS 2). It sits above the vehicle autonomy layer to orchestrate complex tactical decisions.
+
+```mermaid
+flowchart TB
+    W["NVIDIA Isaac Sim<br/>world · physics · sensors"]
+    P["PX4<br/>vehicle autonomy · flight control"]
+    R["ROS 2<br/>software communication & integration"]
+
+    subgraph H["HESK — Coordination Kernel"]
+        O["Local observations"]
+        C["Capability & task model"]
+        A["Allocation & coalition logic"]
+        D["Graceful degradation"]
+        L["Local state ledger"]
+        X["Partition reconciliation"]
+
+        O --> C
+        C --> A
+        A --> D
+        D --> L
+        L <--> X
+    end
+
+    J["Jetson Orin<br/>edge runtime & latency benchmark"]
+
+    W --> P
+    P <--> R
+    R <--> O
+    H -. "benchmark runtime" .-> J
+```
+
+---
+
 ## 🧬 The 8 Core Algorithms
 
-HESK relies on a mathematically rigorous foundation of 8 core algorithms. 
+HESK is specified algorithm-first. The architecture is decomposed into eight mathematically dependent algorithms. 
 
 <details>
-<summary><b>1️⃣ Capability & Task Modeling (Algorithms 001–003)</b></summary>
+<summary><b>001 — Capability Model</b></summary>
 <br/>
-Abstracts away rigid hardware identities. Tasks have specific capability requirements, and nodes broadcast real-time vectors that account for tactical wear, thermal throttling, and battery drain.
+Defines the difference between hardware inventory and runtime capability. A node may physically contain a GPU while being thermally throttled or energy constrained. HESK reasons about <b>currently usable capability</b>, not a static parts list.
 </details>
 
 <details>
-<summary><b>2️⃣ Scarcity & Coalition Allocation (Algorithms 004–005)</b></summary>
+<summary><b>002 — Task Model</b></summary>
 <br/>
-Assigns tasks optimally based on dynamic `theta` thresholds. If no single node can accomplish an objective, HESK dynamically recruits and chains a temporary tactical coalition of surviving nodes.
+Represents tasks as capability requirements, preferences, priorities, and degradation alternatives. The model asks what a task semantically needs instead of hard-coding a specific robot identity.
 </details>
 
 <details>
-<summary><b>3️⃣ Graceful Degradation (Algorithm 006)</b></summary>
+<summary><b>003 — Capability Matching</b></summary>
 <br/>
-Implements continuous descent mechanisms. Rather than aborting a mission when processing power drops, HESK degrades the objective (e.g., from dense 3D mapping to sparse 2D mapping) to ensure operational continuation.
+Determines whether a node can execute a task from the state it is allowed to know. Required capabilities establish feasibility; preferred capabilities influence ranking.
 </details>
 
 <details>
-<summary><b>4️⃣ Local State Ledger & CRDTs (Algorithm 007)</b></summary>
+<summary><b>004 — Scarcity-Aware Allocation</b></summary>
+<br/>
+Explores the opportunity cost of consuming rare capabilities via dynamic `theta` thresholding. The cheapest eligible node is not always the best assignment if it is the swarm's only provider of a critical future capability.
+</details>
+
+<details>
+<summary><b>005 — Coalition Formation</b></summary>
+<br/>
+Investigates when multiple nodes can jointly satisfy a task that no individual node can execute. Solves <b>capability composition semantics</b> for divisible and indivisible resources.
+</details>
+
+<details>
+<summary><b>006 — Graceful Degradation</b></summary>
+<br/>
+Attempts to preserve useful mission output when the ideal task becomes infeasible. Rather than treating capability loss as a binary failure, HESK searches for lower-cost alternative task strategies.
+</details>
+
+<details>
+<summary><b>007 — Local State Ledger</b></summary>
 <br/>
 Because there is no global "truth" in a jammed environment, every node maintains a Local State Ledger governed by vector clocks, capturing causal histories of beliefs and observations without waiting for central consensus.
 </details>
 
 <details>
-<summary><b>5️⃣ Partition Reconciliation (Algorithm 008)</b></summary>
+<summary><b>008 — Partition Reconciliation</b></summary>
 <br/>
 When a split-brain swarm reconnects, this CRDT algorithm deterministically merges state. Resolves dual-ownership conflicts based on task progress, match quality, and drift-guarded observation recency.
 </details>
 
 ---
 
-## 🛠️ System Architecture
+## 🧪 A HESK Failure Experiment
 
-```mermaid
-graph TD
-    subgraph Tactical Platform Layer
-        M[PX4 / ArduPilot] --> ROS[ROS 2 Adapter]
-    end
+A representative operational scenario looks like this:
 
-    subgraph HESK Coordination Kernel
-        ROS --> C[Capabilities & Tasks]
-        C --> M2[Matching Engine]
-        M2 --> Alloc[Scarcity & Coalitions]
-        Alloc --> Deg[Degradation Descent]
-    end
+```text
+                 50 heterogeneous nodes
+                           │
+                 tasks allocated locally
+                           │
+             ┌─────────────┴─────────────┐
+             │                           │
+        Partition α                 Partition β
+             │                           │
+     loses compute node          loses sensor node
+             │                           │
+     reallocates tasks           degrades mapping
+             │                           │
+     creates local state         creates local state
+             └─────────────┬─────────────┘
+                           │
+                    network restored
+                           │
+                  contradictory claims
+                           │
+                semantic reconciliation
+                           │
+             swarm resumes with one state
+```
 
-    subgraph HESK State Layer
-        Deg --> Ledg[CRDT Local Ledger]
-        Ledg <--> Recon[Partition Reconciliation]
-    end
-    
-    style Tactical Platform Layer fill:#1a1a2e,stroke:#16213e,stroke-width:2px,color:#fff
-    style HESK Coordination Kernel fill:#0f3460,stroke:#e94560,stroke-width:2px,color:#fff
-    style HESK State Layer fill:#16213e,stroke:#e94560,stroke-width:2px,color:#fff
+The interesting questions are measurable: *How much mission utility survives? How quickly does the swarm recover? Do all nodes converge after delayed and reordered messages?*
+
+---
+
+## 📊 Evaluation Strategy
+
+HESK uses a **multi-fidelity** evaluation plan to ensure algorithms are thoroughly falsified before physical deployment. 
+
+| Scale | Environment | Purpose |
+|---|---|---|
+| **10–1,000 agents** | Lightweight HESK simulation | Monte Carlo failure sweeps, partitions, allocation and convergence |
+| **Multi-vehicle** | PX4 + ROS 2 | Vehicle-interface and multi-agent integration |
+| **High-fidelity scenarios** | NVIDIA Isaac Sim | Physics, sensing, occlusion, heterogeneous embodied scenarios |
+| **Edge runtime** | NVIDIA Jetson Orin | Decision latency, memory, local inference and runtime profiling |
+
+> [!IMPORTANT]
+> The simulator may know the global state **only to score the experiment**. HESK nodes operate exclusively on local knowledge. This separation is essential to prevent accidentally making a distributed algorithm appear smarter than it is.
+
+---
+
+## 📂 Repository Structure
+
+```text
+hesk/
+│
+├── docs/                     # Architectural guides and algorithm specifications
+│   ├── HESK_SCOPE.md         # The core thesis and system boundary
+│   ├── CONSTRUCTION_GUIDE.md # Mandatory builder invariants & pitfalls
+│   └── algorithms/           # Detailed specs for Algs 001–008
+│
+├── src/hesk/                 # 🧠 Core Kernel Source Code
+│   ├── capabilities/         # Capability vectors, requirements, and matching
+│   ├── coalitions/           # Divisible and indivisible capability pooling
+│   ├── degradation/          # Service descent and cascade rules
+│   ├── ledger/               # CRDTs, Vector Clocks, and Reconciliation
+│   ├── tasks/                # Scarcity-aware task allocation
+│   └── core/                 # Shared types and primitives
+│
+├── simulation/               # (WIP) Integration testing and environment
+├── tests/                    # 100% Coverage Unit & Adversarial Tests
+└── README.md
 ```
 
 ---
 
-## 🚀 Installation & Setup
+## 📈 Current Status
 
-HESK is written in modern Python and is designed to run locally on companion computers (e.g., Jetson, Raspberry Pi) with minimal dependencies.
+<div align="center">
+
+| Architecture | Algorithms | Core implementation | Simulation | Jetson profiling |
+|:---:|:---:|:---:|:---:|:---:|
+| 🟢 Active | 🟡 Audit | 🟡 Prototype | 🔵 Planned | 🔵 Planned |
+
+</div>
+
+HESK is currently in an **algorithm-first research and prototyping phase**. The immediate priority is removing weak assumptions before they become implementation dependencies—particularly around event identity, observer-relative state, and convergent partition reconciliation.
+
+---
+
+## 🧠 Development Philosophy
+
+> **Write the invariant. Attack the assumption. Build the smallest counterexample. Then write the code.**
+
+HESK deliberately avoids placeholder abstractions like `OptimalAllocator()` or `IntelligentRecoveryManager()` unless the decision logic behind them is explicitly mathematically defined. The repository prefers a small algorithm with a documented limitation over a large codebase that only looks complete.
+
+---
+
+## 🚀 Getting Started
+
+HESK is written in modern Python and is designed to run locally on companion computers with minimal dependencies.
 
 ```bash
 # Clone the repository
@@ -141,8 +274,10 @@ pip install pytest
 pytest tests/unit/
 ```
 
----
+> [!WARNING]
+> HESK is a research prototype. Do not connect experimental coordination logic directly to safety-critical actuators without an independently validated control and safety layer.
 
+<br/>
 <div align="center">
-  <i>HESK is designed for the edge. When the network goes down, the swarm adapts.</i>
+  <i>Preserve capability, not uniformity.</i>
 </div>
