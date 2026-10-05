@@ -34,6 +34,8 @@ ALGORITHMS: Dict[str, tuple] = {
     "cbba":             (CBBAAgent, {}),
     "central":          (CentralAgent, {"quorum": True}),
     "central_noquorum": (CentralAgent, {"quorum": False}),
+    # Tuned for lossy links: the fd/fdkill suites show a 12-heartbeat timeout is this design's best setting.
+    "central_t12":      (CentralAgent, {"quorum": True, "fd_k": 12.0}),
     "cnp":              (HeskAgent, {"scarcity": False, "coalitions": False, "upgrade": False,
                                      "gossip": False, "reconcile": "lww"}),
     "oracle":           (OracleAgent, {}),
@@ -64,7 +66,9 @@ def run_one(scenario: dict, algo: str, seed: int, agent_overrides: dict | None =
     cls, flags = ALGORITHMS[algo]
     overrides = dict(agent_overrides or {})
     world = World(sc, seed)
-    acfg = AgentConfig(name=algo, hb=overrides.pop("hb", 1.0), fd_k=overrides.pop("fd_k", 3.0),
+    flags = dict(flags)
+    fd_default = flags.pop("fd_k", 3.0)      # a registry entry may pin its own failure-detector timeout
+    acfg = AgentConfig(name=algo, hb=overrides.pop("hb", 1.0), fd_k=overrides.pop("fd_k", fd_default),
                        arena=sc.arena, flags={**flags, **overrides})
     roster = [s.node_id for s in world.node_specs]
     agents = {}

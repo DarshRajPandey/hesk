@@ -1,0 +1,15 @@
+[threshold] 630 runs to do (0 already in runs/threshold.jsonl)
+  50/630      71s elapsed  ~   828s left
+  100/630     139s elapsed  ~   737s left
+  150/630     209s elapsed  ~   668s left
+  200/630     276s elapsed  ~   594s left
+  250/630     350s elapsed  ~   531s left
+  300/630     428s elapsed  ~   470s left
+  350/630     502s elapsed  ~   402s left
+  400/630     579s elapsed  ~   333s left
+  450/630     632s elapsed  ~   253s left
+  500/630     678s elapsed  ~   176s left
+  550/630     722s elapsed  ~   105s left
+  600/630     765s elapsed  ~    38s left
+  630/630     792s elapsed  ~     0s left
+FINISHED

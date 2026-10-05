@@ -25,13 +25,14 @@ from scipy.stats import wilcoxon
 # ── palette (validated: dataviz reference palette, slots 1-4) ─────────
 INK, INK2, GRID, SURFACE = "#0b0b0b", "#52514e", "#e4e3df", "#fcfcfb"
 STYLE = {  # algo: (color, marker, linestyle, label) — slots from the validated reference palette
-    "hesk5":   ("#2a78d6", "o", "-", "HESK v5 adaptive (this work)"),
+    "hesk6":   ("#2a78d6", "o", "-", "HESK v6 (this work)"),
+    "hesk5":   ("#4a3aa7", "h", "-", "HESK v5 (loss-adaptive)"),
     "cbba":    ("#eb6834", "s", "-", "CBBA"),
     "central": ("#1baf7a", "^", "-", "Centralized (quorum)"),
     "hesk3":   ("#eda100", "D", "-", "HESK v3 (leases)"),
     "hesk4":   ("#e87ba4", "P", "-", "HESK v4 (claims only)"),
     "cnp":     ("#008300", "X", "-", "Contract Net"),
-    "central_noquorum": ("#4a3aa7", "v", "-", "Centralized (no quorum)"),
+    "central_noquorum": ("#e34948", "v", "-", "Centralized (no quorum)"),
     "hesk":    ("#8d8c87", "x", ":", "HESK as specified"),
     "hesk2":   ("#52514e", "+", "--", "HESK v2"),
     "oracle":  ("#0b0b0b", "*", "-.", "Oracle (cheats)"),
@@ -188,8 +189,8 @@ def make_figures(rows, outdir):
         _lines(axes[0], T["loss"], "loss", ["hesk", "hesk3", "cbba", "central", "independent"])
         axes[0].set(title="(a) The problem: handshake-based HESK vs baselines", xlabel="packet loss probability",
                     ylabel="utility retained (fraction of ideal)", xlim=(-0.02, 1.25))
-        _lines(axes[1], T["loss"], "loss", ["hesk3", "hesk4", "hesk5", "cbba"])
-        axes[1].set(title="(b) The fix: claims (v4) and loss-adaptive switching (v5)", xlabel="packet loss probability",
+        _lines(axes[1], T["loss"], "loss", ["hesk3", "hesk4", "hesk6", "cbba"])
+        axes[1].set(title="(b) The fix: claims (v4) and adaptive switching (v5/v6)", xlabel="packet loss probability",
                     xlim=(-0.02, 1.25))
         axes[0].legend(loc="lower left", fontsize=8)
         axes[1].legend(loc="lower left", fontsize=8)
@@ -199,7 +200,7 @@ def make_figures(rows, outdir):
 
     if "baseline" in T:
         conds = ["nominal", "loss30", "partition2", "attrition30", "adversarial"]
-        algos = ["oracle", "hesk", "hesk3", "hesk5", "cbba", "central", "cnp", "independent"]
+        algos = ["oracle", "hesk", "hesk3", "hesk6", "cbba", "central", "cnp", "independent"]
         fig, ax = plt.subplots(figsize=(12, 4.6))
         w = 0.8 / len(algos)
         for i, algo in enumerate(algos):
@@ -266,7 +267,7 @@ def make_figures(rows, outdir):
     if "attrition" in T:
         fig, axes = plt.subplots(1, 3, figsize=(15, 4.2), sharey=True)
         for ax, mode in zip(axes, ["random", "scarce", "leader"]):
-            _lines(ax, T["attrition"], "kill", ["hesk3", "hesk5", "cbba", "central", "cnp"], filt={"mode": mode})
+            _lines(ax, T["attrition"], "kill", ["hesk3", "hesk6", "cbba", "central", "cnp"], filt={"mode": mode})
             ax.set(title=f"Attrition — adversary kills: {mode}", xlabel="fraction of fleet destroyed", xlim=(-0.02, 0.8))
         axes[0].set_ylabel("utility retained")
         fig.tight_layout()
@@ -276,7 +277,7 @@ def make_figures(rows, outdir):
     if "partition" in T:
         fig, axes = plt.subplots(1, 3, figsize=(15, 4.2), sharey=True)
         for ax, k in zip(axes, [2.0, 3.0, 4.0]):
-            _lines(ax, T["partition"], "dur", ["hesk3", "hesk5", "cbba", "central", "central_noquorum"], filt={"k": k})
+            _lines(ax, T["partition"], "dur", ["hesk3", "hesk6", "cbba", "central", "central_noquorum"], filt={"k": k})
             ax.set(title=f"Network split into {int(k)} islands", xlabel="partition duration (s)", xlim=(40, 400))
         axes[0].set_ylabel("utility retained")
         fig.tight_layout()
@@ -286,7 +287,7 @@ def make_figures(rows, outdir):
     if "burst" in T:
         fig, axes = plt.subplots(1, 3, figsize=(15, 4.2), sharey=True)
         for ax, p in zip(axes, [0.2, 0.4, 0.6]):
-            _lines(ax, T["burst"], "burst", ["hesk3", "hesk5", "cbba", "central"], filt={"loss": p})
+            _lines(ax, T["burst"], "burst", ["hesk3", "hesk6", "cbba", "central"], filt={"loss": p})
             ax.set_xscale("log", base=2)
             ax.set(title=f"Bursty loss, mean loss = {p:.0%}", xlabel="mean burst length (packets, log scale)")
         axes[0].set_ylabel("utility retained")
@@ -296,7 +297,7 @@ def make_figures(rows, outdir):
 
     if "latency" in T:
         fig, ax = plt.subplots(figsize=(7, 4.2))
-        _lines(ax, T["latency"], "lat", ["hesk3", "hesk5", "cbba", "central"])
+        _lines(ax, T["latency"], "lat", ["hesk5", "hesk6", "cbba", "central", "cnp"])
         ax.set_xscale("log")
         ax.set(title="Utility vs one-way link latency", xlabel="latency (s, log scale)", ylabel="utility retained")
         fig.tight_layout()
@@ -349,7 +350,7 @@ def make_figures(rows, outdir):
         cells = ["only=burstloss", "only=partition", "only=scarcekill", "only=degrade",
                  "all-minus=burstloss", "all-minus=partition", "all-minus=scarcekill", "all-minus=degrade"]
         fig, ax = plt.subplots(figsize=(11, 4.6))
-        for k, (a, off) in enumerate([("hesk3", -0.12), ("hesk5", 0.12)]):
+        for k, (a, off) in enumerate([("hesk3", -0.12), ("hesk6", 0.12)]):
             ps = {p["cell"]: p for p in paired(rows, "decomp", a, "cbba")}
             c, mk, _, lab = STYLE[a]
             for i, cell in enumerate(cells):
@@ -383,7 +384,7 @@ def write_tables(rows, outdir):
     for suite in ["baseline", "loss", "attrition", "partition", "burst", "latency", "fd", "scale", "decomp", "fdkill",
                   "threshold"]:
         present = {r["algo"] for r in rows if r["suite"] == suite}
-        heads = ["hesk3", "hesk5"] + (["hesk5_t0.05", "hesk5_t0.1", "hesk5_t0.2", "hesk5_t0.5"] if suite == "threshold" else [])
+        heads = ["hesk3", "hesk5", "hesk6"] + (["hesk5_t0.05", "hesk5_t0.1", "hesk5_t0.2", "hesk5_t0.5"] if suite == "threshold" else [])
         for a in heads:
             for b in refs:
                 if a != b and a in present and b in present:
