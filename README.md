@@ -28,6 +28,29 @@ HESK is an attempt to make that question explicit, executable, and falsifiable. 
 
 ---
 
+## 🔬 Research Results at a Glance
+
+HESK now ships with a **reproducible research harness**: a deterministic swarm-network simulator, ~31,000
+simulated missions (plus 66,600 algebra/allocation trials) across 13 experiments, two conventional baselines, ablations, and a root-cause study.
+One command (`make results`) regenerates every number below.
+
+| Question | Answer (95% CIs in [`results/REPORT.md`](results/REPORT.md)) |
+|---|---|
+| Does the original ledger (Alg. 007/008) converge after a partition? | **No, in 0-2% of runs**, under every protocol reading, even with a perfect failure detector. Nine verified defects (F1-F9). |
+| Does the rebuilt ledger, **HESK-L**, converge? | **Yes: 4,909 of 4,960 runs**; every exception is at ≥80% packet loss, where agreement takes longer than the 30 s window. Zero lost updates; merge laws property-tested. |
+| HESK-L vs a Raft/Paxos-style quorum (etcd, Consul, CockroachDB)? | Under a 3-way split the quorum leaves **100% of reassigned jobs undone**; HESK-L leaves 0% (cost: duplicated work until healing). At only **10% packet loss** a minimal-majority quorum already orphans **~36%**. |
+| HESK-L vs last-writer-wins gossip (Cassandra, DynamoDB global tables)? | With 1 s clock skew LWW silently **reverts 26% of deliberate handoffs**; HESK-L reverts 0% and wastes ~13x less work progress. |
+| Which defect actually breaks the original? | Not the eye-catching one. A factorial patch study shows the "circular comparison" (F1) never decides the outcome; the 5 s concurrency window (F2) and receiver-clock stamping (F3) do, and **only together**. |
+| Does scarcity-aware allocation (Alg. 004) pay off? | It recovers +11 points of optimal utility over no scarcity term, **but a zero-parameter "tightest-fit" rule does better.** Reported, not hidden. |
+
+📘 Start here: [How HESK works, in plain terms](docs/research/HOW_HESK_WORKS.md) ·
+[Findings](docs/research/FINDINGS.md) · [Simulation & reproduction](docs/research/SIMULATION.md) ·
+[Roadmap, compute budget, hardware plan](docs/research/ROADMAP.md)
+
+<p align="center"><img src="results/figures/e13_failure.png" width="90%" alt="Adversarial sweeps: agreement, orphaned jobs, duplicated work and lost counts versus packet loss, crashes, latency and partition length"/></p>
+
+---
+
 ## 🎖️ Defense & Tactical Applications
 
 HESK was fundamentally architected to address the realities of modern electronic warfare (EW) and contested domains. By prioritizing mathematically verifiable resilience over fragile centralization, HESK provides robust capabilities for defense applications:
@@ -57,7 +80,7 @@ HESK is governed by strict, non-negotiable architectural rules. No HESK node may
       🤝<br/><b>Dynamic Coalitions</b><br/>Instantaneous teaming of fragmented nodes to meet complex mission requirements.
     </td>
     <td align="center" width="25%">
-      🌊<br/><b>CRDT Reconciliation</b><br/>Deterministic, vector-clock-driven conflict resolution when split-brain partitions merge.
+      🌊<br/><b>Lattice Reconciliation</b><br/>HESK-L: merge rules that provably commute, associate and ignore repeats, so split-brain partitions re-converge.
     </td>
   </tr>
 </table>
@@ -206,23 +229,20 @@ HESK uses a **multi-fidelity** evaluation plan to ensure algorithms are thorough
 
 ```text
 hesk/
-│
-├── docs/                     # Architectural guides and algorithm specifications
-│   ├── HESK_SCOPE.md         # The core thesis and system boundary
-│   ├── CONSTRUCTION_GUIDE.md # Mandatory builder invariants & pitfalls
-│   └── algorithms/           # Detailed specs for Algs 001–008
-│
-├── src/hesk/                 # 🧠 Core Kernel Source Code
-│   ├── capabilities/         # Capability vectors, requirements, and matching
-│   ├── coalitions/           # Divisible and indivisible capability pooling
-│   ├── degradation/          # Service descent and cascade rules
-│   ├── ledger/               # CRDTs, Vector Clocks, and Reconciliation
-│   ├── tasks/                # Scarcity-aware task allocation
-│   └── core/                 # Shared types and primitives
-│
-├── simulation/               # (WIP) Integration testing and environment
-├── tests/                    # 100% Coverage Unit & Adversarial Tests
-└── README.md
+├── docs/
+│   ├── algorithms/           # Specs for Algorithms 001–008
+│   └── research/             # How HESK works, findings, simulation guide, roadmap
+├── src/hesk/
+│   ├── capabilities/ tasks/ coalitions/ degradation/   # Algorithms 001–006
+│   ├── ledger/               # 007/008 (legacy) + lattice.py (HESK-L)
+│   ├── sim/                  # Deterministic discrete-event swarm-network simulator
+│   └── bench/                # Experiments E1–E13, baselines, root-cause patches, analysis
+├── tests/
+│   ├── unit/                 # Algorithm tests + semilattice property tests
+│   ├── sim/                  # Determinism and HESK-L guarantee tests
+│   └── failures/             # F1–F9: verified legacy defects (strict xfail)
+├── results/                  # Raw runs, manifest, REPORT.md, figures (regenerate: make results)
+└── Makefile                  # make test | quick | results | report
 ```
 
 ---
@@ -233,7 +253,7 @@ hesk/
 
 | Architecture | Algorithms | Core implementation | Simulation | Jetson profiling |
 |:---:|:---:|:---:|:---:|:---:|
-| 🟢 Active | 🟡 Audit | 🟡 Prototype | 🔵 Planned | 🔵 Planned |
+| 🟢 Active | 🟢 Audited (F1–F9) | 🟡 Prototype + HESK-L | 🟢 Mission-level (10⁴ runs) | 🔵 Planned |
 
 </div>
 
@@ -263,15 +283,16 @@ python -m venv .venv
 source .venv/bin/activate
 
 # Install the HESK package in editable mode
-pip install -e .
+pip install -e ".[dev,bench]"
 ```
 
-### Running the Test Suite
-The testing suite includes 29 adversarial tests verifying CRDT convergence, scarcity math, and reconciliation cascades.
+### Running the Tests and Experiments
 
 ```bash
-pip install pytest
-pytest tests/unit/
+pip install -e ".[dev,bench]"
+make test       # unit, simulator and property tests, plus 9 expected-failure defect tests (~15 s)
+make quick      # 5-seed smoke run of every experiment (~1 min)
+make results    # full study (~31,000 missions + 66,600 trials, ~25 min on 4 cores) -> results/
 ```
 
 > [!WARNING]

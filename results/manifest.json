@@ -1,5 +1,5 @@
 {
-  "git_commit": "904b0f43b40366af55c2667a9d29a1d54cd5a4d8",
+  "git_commit": "1059d5f07789e76e506ece1371bae4d3bffb4466",
   "git_dirty": true,
   "python": "3.11.15",
   "platform": "Linux-6.18.44-fc-v70-x86_64-with-glibc2.39",
@@ -15,6 +15,8 @@
     "E7_ablation",
     "E8_intra_group",
     "E10_root_cause",
+    "E12_baselines",
+    "E13_failure",
     "E9_algebra",
     "E11_alloc"
   ],
@@ -28,9 +30,11 @@
     "E7_ablation": 100,
     "E8_intra_group": 60,
     "E10_root_cause": 60,
+    "E12_baselines": 100,
+    "E13_failure": 60,
     "E9_algebra": 60,
     "E11_alloc": 200
   },
-  "wall_seconds": 1178.1,
+  "wall_seconds": 1466.8,
   "pythonhashseed": "unset"
 }

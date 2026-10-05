@@ -227,14 +227,16 @@ def fig_failure(rows, path):
                 sc = 100 if pct else 1
                 x = [p_[0] for p_ in pts]; mm = np.array([p_[1][0] for p_ in pts]) * sc
                 lo = np.array([p_[1][1] for p_ in pts]) * sc; hi = np.array([p_[1][2] for p_ in pts]) * sc
-                ax.errorbar(x, mm, yerr=[np.clip(mm - lo, 0, None), np.clip(hi - mm, 0, None)], color=COLOR[impl], marker=MARK[impl], ms=5, lw=1.8, capsize=2,
-                            mec="#fcfcfb", label=impl)
+                top = impl == "hesk-l"
+                ax.errorbar(x, mm, yerr=[np.clip(mm - lo, 0, None), np.clip(hi - mm, 0, None)], color=COLOR[impl], marker=MARK[impl],
+                            ms=6 if top else 4, lw=2.4 if top else 1.6, capsize=2, mec="#fcfcfb", label=impl,
+                            ls="--" if impl == "baseline/lww-gossip" else "-", zorder=5 if top else 2)
             if ri == len(metrics) - 1:
                 ax.set_xlabel(xl)
             if ci == 0:
                 ax.set_ylabel(yl, fontsize=9)
     axes[0][0].legend(fontsize=8)
-    fig.suptitle("Adversarial sweeps (E13): 95% CIs over 60 seeds per point", x=0.01, ha="left", fontsize=12)
+    fig.suptitle("Adversarial sweeps (E13): 95% CIs over 60 seeds per point. HESK-L (blue, on top) and LWW gossip (dashed) coincide on these metrics; they differ on handoff correctness and regret (E12).", x=0.01, ha="left", fontsize=11)
     fig.tight_layout(); fig.savefig(path, dpi=150); plt.close(fig)
 
 
