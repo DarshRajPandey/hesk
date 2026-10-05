@@ -11,6 +11,7 @@ from hesk_sim.agents.base import AgentConfig
 from hesk_sim.agents.cbba import CBBAAgent
 from hesk_sim.agents.centralized import CentralAgent, OracleAgent, OracleBrain
 from hesk_sim.agents.hesk_agent import HeskAgent
+from hesk_sim.agents.independent import IndependentAgent
 from hesk_sim.engine import derive_seed
 from hesk_sim.scenario import ScenarioConfig
 from hesk_sim.world import World
@@ -26,12 +27,15 @@ ALGORITHMS: Dict[str, tuple] = {
     "hesk":             (HeskAgent, {}),
     "hesk2":            (HeskAgent, H2),
     "hesk3":            (HeskAgent, H3),
+    "hesk4":            (HeskAgent, {**H3, "claims": True}),
+    "hesk5":            (HeskAgent, {**H3, "claims": "adaptive"}),
     "cbba":             (CBBAAgent, {}),
     "central":          (CentralAgent, {"quorum": True}),
     "central_noquorum": (CentralAgent, {"quorum": False}),
     "cnp":              (HeskAgent, {"scarcity": False, "coalitions": False, "upgrade": False,
                                      "gossip": False, "reconcile": "lww"}),
     "oracle":           (OracleAgent, {}),
+    "independent":      (IndependentAgent, {}),
     # ── ablations of hesk3 ──
     "abl-lease":        (HeskAgent, {**H3, "lease": False}),
     "abl-coalscarcity": (HeskAgent, {**H3, "coalition_scarcity": False}),

@@ -85,7 +85,7 @@ def test_dead_nodes_neither_send_nor_receive():
 def test_every_algorithm_completes_a_nominal_mission(algo):
     r = run_one({"duration": 300.0}, algo, 1)
     assert 0.0 <= r["utility_ratio"] <= 1.0
-    floor = 0.3 if algo in ("abl-tiers",) else 0.55
+    floor = {"abl-tiers": 0.3, "independent": 0.2}.get(algo, 0.55)  # independent = no-coordination null baseline
     assert r["utility_ratio"] > floor, r
 
 

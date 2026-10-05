@@ -44,7 +44,11 @@ UPGRADE_PERIOD = 10.0
 PROGRESS_HORIZON = 300.0
 
 DEFAULT_FLAGS = dict(scarcity=True, tiers=True, coalitions=True, upgrade=True, gossip=True, reconcile="epoch",
-                     coalition_scarcity=False, coalition_pen_max=0.5, lease=False)
+                     coalition_scarcity=False, coalition_pen_max=0.5, lease=False, claims=False,
+                     adapt_threshold=0.3)
+CLAIM_MARGIN = 0.02      # a challenger must beat a live incumbent's score by this much
+SWITCH_PERIOD = 5.0      # how often a busy drone reconsiders its claim
+W_COST = 0.1             # score = priority × tier quality − W_COST × Alg-004 system cost
 
 
 def _sig(v: Optional[dict]):
@@ -69,6 +73,7 @@ class HeskAgent(AgentBase):
         self.retry_at: Dict[str, float] = {}
         self.commit_until = 0.0
         self.next_upgrade = UPGRADE_PERIOD
+        self.next_switch = 0.0
         self.dynamic: Dict[str, object] = {}
         self.stats = dict(conflicts=0, releases_by_reconcile=0, auctions=0, awards=0, coalitions=0)
 
@@ -111,6 +116,8 @@ class HeskAgent(AgentBase):
             return
         if mode == "lww":
             winner = remote if (remote["ts"], remote["assignee"] or "") > (local["ts"], local["assignee"] or "") else local
+        elif "score" in remote and "score" in local and remote["assignee"] != local["assignee"]:
+            winner = self._claim_order(local, remote, now)
         elif remote["epoch"] != local["epoch"]:
             newer, older = (remote, local) if remote["epoch"] > local["epoch"] else (local, remote)
             winner = newer
@@ -129,6 +136,70 @@ class HeskAgent(AgentBase):
         if winner is remote:
             self.set_own(tid, remote)
             self._after_merge(tid, now)
+
+    def _claim_order(self, local: dict, remote: dict, now: float) -> dict:
+        """hesk4: deterministic order over competing claims (state-based, no handshake)."""
+        if remote["epoch"] == local["epoch"]:
+            ka = (local.get("score", -1e9), "" if local["released"] else "~", local["assignee"] or "")
+            kb = (remote.get("score", -1e9), "" if remote["released"] else "~", remote["assignee"] or "")
+            if local["released"] != remote["released"]:
+                return local if remote["released"] else remote
+            return remote if (kb[0], kb[1], tuple(-ord(c) for c in kb[2])) > (ka[0], ka[1], tuple(-ord(c) for c in ka[2])) else local
+        newer, older = (remote, local) if remote["epoch"] > local["epoch"] else (local, remote)
+        if older["released"] or not self._lease_fresh(older, now) or newer.get("preempt"):
+            return newer
+        if newer["released"]:
+            return older
+        return newer if newer.get("score", -1e9) > older.get("score", -1e9) + CLAIM_MARGIN else older
+
+    def _claim_step(self, now: float) -> None:
+        """hesk4: pick the best task I can claim and write the claim to my ledger; gossip does the rest."""
+        busy = self.my is not None
+        if busy and (len(self.my.members) > 1 or now < self.next_switch):
+            return
+        self.next_switch = now + SWITCH_PERIOD
+        me = self.body.capability_state(now)
+        swarm = self.swarm_view(now)
+        cache: dict = {}
+        cur_score = -1e9
+        if busy:
+            cur_score = (self.own(self.my.task_id) or {}).get("score", -1e9)
+        best = None
+        for tid, task in sorted(self.tasks.items()):
+            if task.arrival > now or (busy and tid == self.my.task_id):
+                continue
+            v = self.own(tid)
+            tiers = range(len(task.defn.tiers)) if self.f["tiers"] else [0]
+            for ti in tiers:
+                tier = task.defn.tiers[ti]
+                mr = compute_full_match(me, tier.required, tier.preferred)
+                if not mr.eligible:
+                    continue
+                pen = self._penalty(me, tier.required, swarm, cache)
+                cost = compute_system_cost(mr.quality, self.body.energy, base_consumption=1.0, scarcity_penalty=pen,
+                                           comm_cost=self.travel_cost(task), w_comm=1.0)
+                score = task.defn.mission_priority * tier.quality_estimate - W_COST * cost
+                if score <= 0:
+                    break
+                free = (v is None or v["released"] or not all(self._member_live(v, m, now) for m in v["members"]))
+                if free or score > v.get("score", -1e9) + CLAIM_MARGIN:
+                    gain = score - (cur_score + CLAIM_MARGIN if busy else 0.0)
+                    if gain > 0 and (best is None or score > best[0]):
+                        best = (score, tid, ti, mr.quality)
+                break                           # best feasible tier only
+        if best is None:
+            return
+        score, tid, ti, mq = best
+        if busy:
+            old = self.own(self.my.task_id)
+            self.set_own(self.my.task_id, dict(old, released=True, rev=old["rev"] + 1, ts=now))
+        v = self.own(tid)
+        value = {"assignee": self.id, "members": [self.id], "tier": ti, "epoch": (v["epoch"] if v else 0) + 1,
+                 "rev": 0, "released": False, "since": now, "ts": now, "match_quality": mq,
+                 "lease": {self.id: now}, "preempt": False, "score": score}
+        self.my = Intent(tid, ti, (self.id,))
+        self.my_epoch = value["epoch"]
+        self.set_own(tid, value)
 
     def _member_live(self, v: dict, m: str, now: float) -> bool:
         """Direct heartbeat OR a fresh lease relayed by anyone (indirect evidence)."""
@@ -196,14 +267,24 @@ class HeskAgent(AgentBase):
         self.dynamic[task.id] = task
 
     # ── bidder side ──────────────────────────────────────────────────
+    def _penalty(self, me, required, swarm, cache: dict) -> float:
+        """Alg 004 scarcity penalty, memoised per required-dimension set within one evaluation."""
+        if not self.f["scarcity"]:
+            return 0.0
+        key = frozenset(required)
+        if key not in cache:
+            cache[key] = compute_scarcity_penalty(me, set(required), swarm)
+        return cache[key]
+
     def _bid_for(self, tid: str, tiers: List[int], now: float) -> Dict[int, list]:
         task = self.tasks[tid]
         me = self.body.capability_state(now)
         swarm = self.swarm_view(now)
         per = {}
+        cache: dict = {}
         for ti in tiers:
             tier = task.defn.tiers[ti]
-            pen = compute_scarcity_penalty(me, set(tier.required), swarm) if self.f["scarcity"] else 0.0
+            pen = self._penalty(me, tier.required, swarm, cache)
             mr = compute_full_match(me, tier.required, tier.preferred)
             if not mr.eligible:
                 per[ti] = [None, 0.0, pen]           # coalition candidate only
@@ -338,9 +419,16 @@ class HeskAgent(AgentBase):
                 else:
                     self._abort(now, backoff=1.0)
             return
+        claims = self.f["claims"]
+        if claims == "adaptive":
+            # hesk5: transactional auctions (coalitions possible) while the channel is good,
+            # state-based claims once the locally measured loss passes the crossover.
+            claims = self.estimated_loss(now) > self.f["adapt_threshold"]
+        if claims:
+            self._claim_step(now)
         if self.alive_view(now)[0] != self.id:
             return                              # not the responsible announcer in my view
-        pending = self._needs_auction(now)
+        pending = [] if claims else self._needs_auction(now)
         if pending:
             tid = pending[0]
             n = len(self.tasks[tid].defn.tiers)

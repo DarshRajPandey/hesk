@@ -55,6 +55,7 @@ class AgentBase:
         self.loop: EventLoop = None  # type: ignore
         self.net: Network = None     # type: ignore
         self._next_hb = 0.0
+        self._hb_rx: List[float] = []       # receive times of peer heartbeats (local loss estimate)
 
     # ── lifecycle ────────────────────────────────────────────────────
     def start(self, loop: EventLoop, net: Network, initial_tasks: List[SimTask]) -> None:
@@ -105,6 +106,7 @@ class AgentBase:
             pi = self.peers[msg.src] = PeerInfo(now, {}, (0, 0), 1.0, None, -1e9)
         pi.last_heard = now
         if msg.kind == "HB":
+            self._hb_rx.append(now)
             p = msg.payload
             pi.caps, pi.pos, pi.energy, pi.busy, pi.report_time = dict(p["caps"]), p["pos"], p["energy"], p["busy"], p["t"]
         self.handle(msg, now)
@@ -125,6 +127,16 @@ class AgentBase:
             if n != self.id and self.peers[n].caps:
                 out.append(CapabilityState(n, self.peers[n].report_time, dict(self.peers[n].caps)))
         return out
+
+    def estimated_loss(self, now: float, window: float = 10.0) -> float:
+        """Local loss estimate: heartbeats received vs expected from peers believed alive.
+        Uses only this node's own receptions (no oracle)."""
+        while self._hb_rx and self._hb_rx[0] < now - window:
+            self._hb_rx.pop(0)
+        expected = (len(self.alive_view(now)) - 1) * window / self.cfg.hb
+        if expected <= 0 or now < window:
+            return 0.0
+        return max(0.0, 1.0 - len(self._hb_rx) / expected)
 
     def travel_cost(self, task: SimTask) -> float:
         return math.dist(self.body.pos, task.pos) / self.cfg.arena
