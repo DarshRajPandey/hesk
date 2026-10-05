@@ -28,16 +28,64 @@ HESK is an attempt to make that question explicit, executable, and falsifiable. 
 
 ---
 
+## 🔬 Research Results — 12,985 reproducible experiments
+
+HESK ships with a deterministic swarm simulator, five baselines and an automated experiment
+grid. Every number below is a **paired comparison over identical fleets, missions and fault
+schedules**, reproducible bit-for-bit (`make verify`). Full write-up:
+**[docs/RESEARCH.md](docs/RESEARCH.md)** · plain-language guide:
+**[docs/UNDERSTANDING_HESK.md](docs/UNDERSTANDING_HESK.md)**.
+
+<p align="center"><img src="results/figures/fig_loss.png" width="100%" alt="Mission utility versus packet loss for HESK variants and baselines"/></p>
+
+| Condition | HESK v6 vs **CBBA** | vs **centralized optimal dispatch** (tuned) |
+|---|---|---|
+| Nominal | **+0.091** | **+0.064** |
+| 30% packet loss | **+0.048** | **+0.043** |
+| 90% packet loss | **+0.016** | **+0.242** |
+| 2-way partition (150 s) | **+0.040** | **+0.045** |
+| Bursty loss, 60% mean, 16-packet bursts | −0.006 | **+0.215** |
+| Compound attack (bursty loss + partition + rare-drone kills + sensor failures) | **−0.021** ⚠️ | **+0.013** |
+| 50–60% i.i.d. loss | −0.015 to −0.024 | **−0.022 to −0.027** ⚠️ |
+
+*Δ = fraction of ideal mission utility, bold = p < 0.01 (Wilcoxon, 20–30 paired seeds). The
+centralized baseline uses its best failure-detector timeout. HESK v6 is the kernel plus the
+fixes the experiments motivated. ⚠️ = where HESK still loses.*
+
+**What the experiments discovered** (each found by measurement, explained by a mechanism, and
+confirmed by intervention):
+
+1. 🕳️ **The scarcity guard had a back door.** Coalition formation drafted the only thermal
+   drones as spare compute, starving critical search-and-rescue tasks. Fix: critical utility
+   0.58 → 0.84.
+2. 👻 **Under packet loss, the failure detector becomes the allocator.** False "node dead"
+   suspicions evicted working owners 78× per mission. Leases fix it: +0.25 utility at 30% loss.
+3. 🤝 **Transactions are what jamming kills.** Handshake-based allocation collapses with loss;
+   state-based claims stay flat to 90% loss. But only transactions can form coalitions, so
+   HESK v5/v6 switch per drone from a *local* loss estimate. A *mixed* fleet beat both pure ones.
+4. 🛰️ **A fixed timeout made HESK unusable over satellite links.** At ≥ 250 ms latency, no bid
+   ever arrived and utility dropped from 0.84 to 0.05. Measured-RTT timeouts fix it.
+5. 🧩 **Faults interact.** Every single fault favours HESK, but the compound attack doesn't:
+   kills create repair work, and loss taxes repair.
+6. 🧪 **Two reconciliation rules in Alg 008 never converge**, and the ownership cascade has no
+   causal order (resurrects dead owners). Both are encoded as regression tests.
+7. ⚖️ **Our own baseline was handicapped, and we fixed it.** The centralized dispatcher looked
+   fragile under loss only because of its failure-detector timeout. Tuned, it's competitive,
+   and every headline number above uses the tuned version.
+
+---
+
 ## 🎖️ Defense & Tactical Applications
 
-HESK was fundamentally architected to address the realities of modern electronic warfare (EW) and contested domains. By prioritizing mathematically verifiable resilience over fragile centralization, HESK provides robust capabilities for defense applications:
+HESK targets contested environments: electronic warfare, jamming and attrition. Each claim below
+is marked with what the simulation study actually measured.
 
-| Capability | Tactical Advantage |
-| :--- | :--- |
-| **Electronic Warfare (EW) Resilience** | Operates exclusively on mathematically reconciled Local State Ledgers. If a swarm is fractured by jamming, sub-swarms continue executing their local missions independently without waiting for central consensus. |
-| **Autonomous Reconstitution** | If a high-value ISR node is destroyed, HESK autonomously forms distributed capability-coalitions from surviving nodes to reconstruct the lost sensor coverage. |
-| **Semantic Information Degradation** | As bandwidth is throttled or jammed, HESK strategically drops high-bandwidth data in favor of hyper-compressed semantic representations (e.g., coordinate points), ensuring critical targeting data always penetrates. |
-| **Attritable Heterogeneity** | Seamlessly mixes high-capability assets (Heavy Compute/Sensors) with low-cost attritable drones. Tasks are mapped to the most expendable node capable of execution, preserving scarce capabilities. |
+| Capability | Tactical advantage | Evidence |
+| :--- | :--- | :--- |
+| **EW resilience** | Sub-swarms fractured by jamming keep allocating locally without central consensus | ✅ Measured: v6 is never significantly worse than CBBA at any i.i.d. loss level, and beats tuned centralized dispatch by up to +0.24 under extreme or bursty loss. ⚠️ Loses to tuned centralized at 50–60% loss and to CBBA under 60% loss with 64-packet bursts |
+| **Autonomous reconstitution** | When a high-value node is destroyed, survivors re-cover its tasks, via coalitions if needed | ✅ Measured, but ⚠️ under compound faults CBBA repairs faster (median 26 s vs 62 s) |
+| **Attritable heterogeneity** | Tasks go to the most expendable capable drone, preserving scarce platforms | ✅ Measured: removing the scarcity term costs −0.108 utility |
+| **Semantic information degradation** | Drop to compressed representations as bandwidth shrinks | 🔵 Design goal, not yet implemented |
 
 ---
 
@@ -192,7 +240,7 @@ HESK uses a **multi-fidelity** evaluation plan to ensure algorithms are thorough
 
 | Scale | Environment | Purpose |
 |---|---|---|
-| **10–1,000 agents** | Lightweight HESK simulation | Monte Carlo failure sweeps, partitions, allocation and convergence |
+| **12–96 agents** ✅ | Lightweight HESK simulation (`src/hesk_sim`) | 12,985 Monte Carlo runs: loss, bursts, partitions, latency, attrition, ablation |
 | **Multi-vehicle** | PX4 + ROS 2 | Vehicle-interface and multi-agent integration |
 | **High-fidelity scenarios** | NVIDIA Isaac Sim | Physics, sensing, occlusion, heterogeneous embodied scenarios |
 | **Edge runtime** | NVIDIA Jetson Orin | Decision latency, memory, local inference and runtime profiling |
@@ -206,23 +254,32 @@ HESK uses a **multi-fidelity** evaluation plan to ensure algorithms are thorough
 
 ```text
 hesk/
+├── src/hesk/                 # 🧠 Coordination kernel (Algorithms 001-008)
+│   ├── capabilities/         #    capability model + matching          (001, 003)
+│   ├── tasks/                #    task model + scarcity-aware auction  (002, 004)
+│   ├── coalitions/           #    multi-drone coalition formation      (005)
+│   ├── degradation/          #    tier descent and cascades            (006)
+│   └── ledger/               #    local ledger + reconciliation        (007, 008)
 │
-├── docs/                     # Architectural guides and algorithm specifications
-│   ├── HESK_SCOPE.md         # The core thesis and system boundary
-│   ├── CONSTRUCTION_GUIDE.md # Mandatory builder invariants & pitfalls
-│   └── algorithms/           # Detailed specs for Algs 001–008
+├── src/hesk_sim/             # 🧪 Research harness
+│   ├── engine.py             #    deterministic discrete-event core, seeded RNG streams
+│   ├── network.py            #    lossy / bursty / partitionable broadcast radio
+│   ├── world.py              #    ground truth, faults, scoring (never read by agents)
+│   ├── agents/               #    HESK runtime, CBBA, centralized, Contract Net, oracle, no-comm
+│   ├── suites.py             #    12 experiment families → 12,985 runs
+│   ├── cli.py                #    parallel, resumable runner
+│   └── analyze.py            #    bootstrap CIs, paired Wilcoxon tests, figures
 │
-├── src/hesk/                 # 🧠 Core Kernel Source Code
-│   ├── capabilities/         # Capability vectors, requirements, and matching
-│   ├── coalitions/           # Divisible and indivisible capability pooling
-│   ├── degradation/          # Service descent and cascade rules
-│   ├── ledger/               # CRDTs, Vector Clocks, and Reconciliation
-│   ├── tasks/                # Scarcity-aware task allocation
-│   └── core/                 # Shared types and primitives
+├── docs/
+│   ├── RESEARCH.md           # 📄 the study: method, 13 findings, threats to validity
+│   ├── UNDERSTANDING_HESK.md # 📘 plain-language explanation
+│   ├── ROADMAP.md            # 🛰️ compute budget, scaling, path to hardware
+│   └── algorithms/           # specs for Algs 001-008
 │
-├── simulation/               # (WIP) Integration testing and environment
-├── tests/                    # 100% Coverage Unit & Adversarial Tests
-└── README.md
+├── results/                  # 📊 figures, summary tables, raw run records (gzipped JSONL)
+├── scripts/                  # reproducibility verifier
+├── tests/                    # kernel unit tests + harness tests + kernel-finding regressions
+└── Makefile                  # test · smoke · reproduce · analyze · verify
 ```
 
 ---
@@ -231,13 +288,15 @@ hesk/
 
 <div align="center">
 
-| Architecture | Algorithms | Core implementation | Simulation | Jetson profiling |
-|:---:|:---:|:---:|:---:|:---:|
-| 🟢 Active | 🟡 Audit | 🟡 Prototype | 🔵 Planned | 🔵 Planned |
+| Kernel | Simulation | Baselines | Experiments | Hardware | Jetson profiling |
+|:---:|:---:|:---:|:---:|:---:|:---:|
+| 🟢 v6 | 🟢 Done | 🟢 5 + oracle | 🟢 12,985 runs | 🔵 Planned | 🔵 Planned |
 
 </div>
 
-HESK is currently in an **algorithm-first research and prototyping phase**. The immediate priority is removing weak assumptions before they become implementation dependencies—particularly around event identity, observer-relative state, and convergent partition reconciliation.
+Next: fix kernel findings K1/K2 upstream in `src/hesk/ledger`, add range-limited multi-hop radio,
+then software-in-the-loop (PX4 + ROS 2) and a tabletop hardware validation. See
+[docs/ROADMAP.md](docs/ROADMAP.md).
 
 ---
 
@@ -263,15 +322,21 @@ python -m venv .venv
 source .venv/bin/activate
 
 # Install the HESK package in editable mode
-pip install -e .
+pip install -e .[dev,analysis]
 ```
 
-### Running the Test Suite
-The testing suite includes 29 adversarial tests verifying CRDT convergence, scarcity math, and reconciliation cascades.
+### Reproducing the study
 
 ```bash
-pip install pytest
-pytest tests/unit/
+pip install -e '.[dev,analysis]'
+make test        # kernel + harness tests (~1 min)
+make verify      # re-run 24 random published runs, check bit-exact match
+make smoke       # every experiment family with 1 seed (~10 min)
+make reproduce   # all 12,985 runs (~5 h on 4 cores; ~20 min on a 64-vCPU VM)
+make analyze     # tables + figures into results/
+
+# one run, any condition
+python -m hesk_sim.cli one --algo hesk6 --seed 7 --set loss=0.4 kill_frac=0.3
 ```
 
 > [!WARNING]
