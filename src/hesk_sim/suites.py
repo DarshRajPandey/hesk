@@ -92,7 +92,13 @@ def suite_jobs(name: str, reps: int | None = None) -> List[Job]:
             cells[f"all-minus={drop}"] = (scen, {})
             cells[f"only={drop}"] = (parts[drop], {})
         return list(_grid(name, cells, ["hesk3", "hesk5", "cbba", "central"], r))
+    if name == "threshold":
+        # Design-parameter sweep: hesk5's auction→claims switching threshold (local loss estimate).
+        # Thresholds are algorithm variants (not cells) so every threshold sees identical seeds.
+        r = reps or 30
+        cells = {c: (CONDITIONS[c], {}) for c in ["nominal", "loss30", "adversarial"]}
+        return list(_grid(name, cells, ["hesk5_t0.05", "hesk5_t0.1", "hesk5_t0.2", "hesk5", "hesk5_t0.5", "hesk4", "cbba"], r))
     raise KeyError(name)
 
 
-SUITES = ["baseline", "loss", "burst", "partition", "attrition", "latency", "ablation", "fd", "scale", "decomp"]
+SUITES = ["baseline", "loss", "burst", "partition", "attrition", "latency", "ablation", "fd", "scale", "decomp", "threshold"]
