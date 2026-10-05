@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use HESK or its benchmark results, please cite it as below."
+title: "HESK: Heterogeneous Edge Swarm Consensus Kernel, with a reproducible convergence benchmark"
+type: software
+license: MIT
+repository-code: "https://github.com/DarshRajPandey/hesk"
+authors:
+  - family-names: Pandey
+    given-names: Darsh Raj
+version: 0.2.0

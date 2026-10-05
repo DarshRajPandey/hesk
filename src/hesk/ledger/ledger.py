@@ -1,6 +1,6 @@
-import time
 from typing import Dict, List, Any, Optional, Tuple
 
+from hesk.core import clock
 from hesk.core.types import NodeId
 from hesk.ledger.model import (
     StateSemanticType,
@@ -23,8 +23,8 @@ MAX_CLOCK_AGE = 1000
 MAX_WALL_AGE_S = 600.0
 
 def local_wall_time() -> float:
-    """Mockable wall time."""
-    return time.time()
+    """Mockable wall time (delegates to the injectable clock)."""
+    return clock.now()
 
 def is_potentially_concurrent(local_entry: LedgerEntry, source_clock: int, source_wall_time: float) -> bool:
     """Detect if two updates to an EXCLUSIVE_OWNERSHIP key might be concurrent."""
