@@ -92,6 +92,13 @@ def suite_jobs(name: str, reps: int | None = None) -> List[Job]:
             cells[f"all-minus={drop}"] = (scen, {})
             cells[f"only={drop}"] = (parts[drop], {})
         return list(_grid(name, cells, ["hesk3", "hesk5", "cbba", "central"], r))
+    if name == "fdkill":
+        # Fairness check: is a long failure-detector timeout free? Not when drones really die.
+        # Every algorithm gets each timeout, so each can be compared at its best setting.
+        r = reps or 20
+        cells = {f"fd_k={k:g},loss={p:.1f}": (dict(loss=p, kill_frac=0.3), {"fd_k": k})
+                 for k in [3, 6, 12] for p in [0.3, 0.5]}
+        return list(_grid(name, cells, ["hesk5", "cbba", "central"], r))
     if name == "threshold":
         # Design-parameter sweep: hesk5's auction→claims switching threshold (local loss estimate).
         # Thresholds are algorithm variants (not cells) so every threshold sees identical seeds.
@@ -101,4 +108,4 @@ def suite_jobs(name: str, reps: int | None = None) -> List[Job]:
     raise KeyError(name)
 
 
-SUITES = ["baseline", "loss", "burst", "partition", "attrition", "latency", "ablation", "fd", "scale", "decomp", "threshold"]
+SUITES = ["baseline", "loss", "burst", "partition", "attrition", "latency", "ablation", "fd", "scale", "decomp", "threshold", "fdkill"]

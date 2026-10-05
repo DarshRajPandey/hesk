@@ -53,3 +53,19 @@
   960/960     862s elapsed  ~     0s left
 [fd] 800 runs to do (0 already in runs/fd.jsonl)
   50/800      56s elapsed  ~   841s left
+  100/800     103s elapsed  ~   721s left
+  150/800     143s elapsed  ~   619s left
+  200/800     176s elapsed  ~   529s left
+  250/800     234s elapsed  ~   515s left
+  300/800     283s elapsed  ~   472s left
+  350/800     328s elapsed  ~   422s left
+  400/800     368s elapsed  ~   368s left
+  450/800     427s elapsed  ~   332s left
+  500/800     477s elapsed  ~   286s left
+  550/800     523s elapsed  ~   238s left
+  600/800     561s elapsed  ~   187s left
+  650/800     614s elapsed  ~   142s left
+  700/800     663s elapsed  ~    95s left
+  750/800     713s elapsed  ~    48s left
+  800/800     751s elapsed  ~     0s left
+[attrition] 1050 runs to do (0 already in runs/attrition.jsonl)
