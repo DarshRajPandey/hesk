@@ -12,3 +12,4 @@ __pycache__/
 
 # Raw experiment outputs (regenerate with `make reproduce`); curated results live in results/
 runs/
+runs_progress*.log

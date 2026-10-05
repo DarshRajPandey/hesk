@@ -13,7 +13,7 @@ test:               ## unit + harness tests (~1 min)
 smoke:              ## every suite with 1 seed per cell (~10 min on 4 cores)
 	$(PY) -m hesk_sim.cli run all --reps 1 --out runs_smoke --workers $(W)
 
-reproduce:          ## the full study: ~9.4k runs (~3-4 h on 4 cores, ~15 min on 64)
+reproduce:          ## the full study: 12,985 runs, 13.4 CPU-hours (~3.5-5 h on 4 cores, ~15 min on 64)
 	$(PY) -m hesk_sim.cli run all --out runs --workers $(W)
 
 analyze:            ## tables + figures from runs/ (or results/raw/)

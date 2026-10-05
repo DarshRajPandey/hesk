@@ -73,8 +73,8 @@ The kernel in `src/hesk/` is a *library* of these decisions. On its own it never
 |---|---|---|
 | World | Ground truth: positions, real capabilities, faults. **Only the scorer reads it.** | `hesk_sim/world.py` |
 | Network | Lossy broadcast radio: random or bursty loss, latency, partitions | `hesk_sim/network.py` |
-| Baselines | CBBA, centralized optimal dispatch, Contract Net, a cheating oracle | `hesk_sim/agents/` |
-| Suites | 6,570 automated runs across 9 experiment families | `hesk_sim/suites.py` |
+| Baselines | CBBA, centralized optimal dispatch (default and tuned), Contract Net, zero-communication, a cheating oracle | `hesk_sim/agents/` |
+| Suites | 12,985 automated runs across 12 experiment families | `hesk_sim/suites.py` |
 | Analysis | Paired statistics, confidence intervals, figures | `hesk_sim/analyze.py` |
 
 ## The scoring rule (what "better" means)

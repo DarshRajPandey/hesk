@@ -2,26 +2,27 @@
 
 ## 1. Compute budget (measured, not guessed)
 
-Measured on this repo's simulator (Python 3.11, one CPU core, 24 drones, 600 s mission):
+Measured from the 12,985 published runs (`wall_s` in every record; Python 3.11, one core each):
 
-| Algorithm | CPU-seconds per run |
+| Configuration | CPU-seconds per run |
 |---|---|
-| Centralized / Contract Net | ~2 |
-| HESK v3 | ~3–5 |
-| CBBA | ~4–7 (full consensus tables in every heartbeat) |
-| 96-drone run (any decentralized) | 200–300 (broadcast cost grows as N²) |
+| 24 drones, centralized / oracle / no-comm | 0.3–1.9 |
+| 24 drones, HESK variants | 3.6–4.5 |
+| 24 drones, CBBA (full consensus tables in every heartbeat) | 4.6 |
+| 48 drones, decentralized | 40–47 |
+| 96 drones, decentralized | ~300 (broadcast cost grows as N²) |
 
 | Campaign | Runs | CPU-hours | 4-core laptop | 64-vCPU cloud VM |
 |---|---|---|---|---|
-| This repo's full grid | 6,570 | ~8 | ~2–3 h overnight | ~10 min |
-| 10,000 runs at 24 drones | 10,000 | ~11 | ~3 h | ~12 min |
-| 1,000 runs at 96 drones | 1,000 | ~70 | ~18 h | ~70 min |
+| **This study** (all suites) | 12,985 | **13.4 (measured)** | ~3.5–5 h | ~15 min |
+| Another 10,000 runs at 24 drones | 10,000 | ~10 | ~3 h | ~10 min |
+| 1,000 runs at 96 drones | 1,000 | ~85 | ~21 h | ~80 min |
 
-**Budget recommendation: $0–50.** The full 10k-run study fits on a laptop overnight. If you
-want it in minutes, one 64-vCPU spot VM (AWS `c7a.16xlarge`, GCP `c3d-highcpu-60` or
-similar) costs a few dollars per hour at spot pricing (check current prices). Ten hours of
-that is still under $50. **Don't buy GPUs.** The simulator is branch-heavy, single-threaded
-Python, so GPUs give no speedup.
+**Budget recommendation: $0–50.** Everything in this repository ran inside a 4-core cloud
+container. One 64-vCPU spot VM (AWS `c7a.16xlarge`, GCP `c3d-highcpu-60` or similar) costs a few
+dollars per hour at spot pricing (check current prices). Ten hours of that, enough for roughly
+100k small runs or 1,000 large ones, stays under $50. **Don't buy GPUs:** the simulator is
+branch-heavy, single-threaded Python, so GPUs give no speedup.
 
 How to run it on a cloud VM:
 
@@ -35,8 +36,10 @@ python -m hesk_sim.analyze runs results
 The runner appends to `runs/<suite>.jsonl` and skips finished runs, so spot-instance
 preemption costs nothing but a restart.
 
-## 2. Scaling from 6.5k to 10k+ runs: where things break
+## 2. Scaling further: where things break
 
+0. **Bandwidth, not utility, breaks first at scale.** Fleet radio traffic grows about N²
+   (271 kB/s at 96 drones). Range-limited, delta-encoded gossip is the top model upgrade.
 1. **Statistics, not compute, is the first limit.** With 30 paired seeds, differences of
    about 0.02 utility are detectable. To claim effects of 0.01, use about 120 seeds per cell.
    Spend extra runs on *the cells near crossovers*, not on uniform grids.
@@ -91,3 +94,9 @@ that turns "simulation results" into "a validated model".
    φ-accrual detector (Hayashibara et al., 2004) is the natural next experiment.
 3. Fix the RESOURCE/MISSION_POLICY non-convergence (Finding K1) and prove convergence with
    property-based tests (`hypothesis`) over random partition/merge orders.
+4. Add hysteresis to v6's auction↔claims switch (the 50–60% loss turbulence), and test *why*
+   a mixed-protocol fleet beat both pure fleets at 30% loss.
+5. Make repair state-based even in auction mode: the compound-attack gap vs CBBA is a
+   repair-speed gap (Finding 6).
+6. Derive the failure-detector timeout itself from measured delay (v6 still loses at 2 s
+   latency), and model minute-long correlated outages as topology change.

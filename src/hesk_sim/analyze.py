@@ -28,7 +28,8 @@ STYLE = {  # algo: (color, marker, linestyle, label) — slots from the validate
     "hesk6":   ("#2a78d6", "o", "-", "HESK v6 (this work)"),
     "hesk5":   ("#4a3aa7", "h", "-", "HESK v5 (loss-adaptive)"),
     "cbba":    ("#eb6834", "s", "-", "CBBA"),
-    "central": ("#1baf7a", "^", "-", "Centralized (quorum)"),
+    "central_t12": ("#1baf7a", "^", "-", "Centralized (tuned timeout)"),
+    "central": ("#1baf7a", "v", "--", "Centralized (default timeout)"),
     "hesk3":   ("#eda100", "D", "-", "HESK v3 (leases)"),
     "hesk4":   ("#e87ba4", "P", "-", "HESK v4 (claims only)"),
     "cnp":     ("#008300", "X", "-", "Contract Net"),
@@ -38,6 +39,22 @@ STYLE = {  # algo: (color, marker, linestyle, label) — slots from the validate
     "oracle":  ("#0b0b0b", "*", "-.", "Oracle (cheats)"),
     "independent": ("#8d8c87", "1", "--", "No communication"),
 }
+COND_LABEL = {"nominal": "Nominal", "loss30": "30% packet loss", "partition2": "2-way partition",
+              "attrition30": "30% attrition", "adversarial": "Compound attack"}
+ABL_LABEL = {"abl-lease": "leases (v3)", "abl-coalscarcity": "scarcity-aware recruitment (v2)",
+             "abl-scarcity": "scarcity term (Alg 004)", "abl-tiers": "degradation tiers (Alg 006)",
+             "abl-coalitions": "coalitions (Alg 005)", "abl-upgrade": "tier upgrades",
+             "abl-gossip": "ledger gossip (Alg 007)", "abl-reconcile": "Alg 008 tie-break → none",
+             "abl-lww": "Alg 008 tie-break → last-writer-wins", "abl-raw008": "epochs + leases → raw Alg 008"}
+
+
+def _mk(marker, color):
+    """Filled markers get a surface-coloured ring; line-only glyphs must keep their own colour."""
+    if marker in ("x", "+", "1", "2", "3", "4", "|", "_"):
+        return dict(markeredgecolor=color, markeredgewidth=1.8)
+    return dict(markeredgecolor=SURFACE, markeredgewidth=1)
+
+
 METRICS = ["utility_ratio", "critical_ratio", "coverage", "tier0_share", "coalition_share",
            "duplicate_agent_s", "msgs_per_node_s", "recovery_median_s", "recovered_frac", "wall_s"]
 
@@ -152,7 +169,7 @@ def _lines(ax, table, xkey, algos, metric="utility_ratio", filt=None, label_ends
         x, y, lo, hi = map(np.array, zip(*pts))
         c, mk, ls, lab = STYLE.get(algo, ("#888", "o", "-", algo))
         ax.fill_between(x, lo, hi, color=c, alpha=0.12, linewidth=0)
-        ax.plot(x, y, color=c, marker=mk, linestyle=ls, label=lab, markeredgecolor=SURFACE, markeredgewidth=1)
+        ax.plot(x, y, color=c, marker=mk, linestyle=ls, label=lab, **_mk(mk, c))
         if label_ends:
             ends = ax.__dict__.setdefault("_ends", [])
             ends.append([x[-1], y[-1], lab])
@@ -186,12 +203,12 @@ def make_figures(rows, outdir):
 
     if "loss" in T:
         fig, axes = plt.subplots(1, 2, figsize=(13, 4.6), sharey=True)
-        _lines(axes[0], T["loss"], "loss", ["hesk", "hesk3", "cbba", "central", "independent"])
+        _lines(axes[0], T["loss"], "loss", ["hesk", "hesk3", "cbba", "central", "central_t12", "independent"])
         axes[0].set(title="(a) The problem: handshake-based HESK vs baselines", xlabel="packet loss probability",
-                    ylabel="utility retained (fraction of ideal)", xlim=(-0.02, 1.25))
-        _lines(axes[1], T["loss"], "loss", ["hesk3", "hesk4", "hesk6", "cbba"])
+                    ylabel="utility retained (fraction of ideal)", xlim=(-0.02, 1.32), xticks=[0, .2, .4, .6, .8])
+        _lines(axes[1], T["loss"], "loss", ["hesk3", "hesk4", "hesk6", "cbba", "central_t12"])
         axes[1].set(title="(b) The fix: claims (v4) and adaptive switching (v5/v6)", xlabel="packet loss probability",
-                    xlim=(-0.02, 1.25))
+                    xlim=(-0.02, 1.32), xticks=[0, .2, .4, .6, .8])
         axes[0].legend(loc="lower left", fontsize=8)
         axes[1].legend(loc="lower left", fontsize=8)
         fig.tight_layout()
@@ -200,7 +217,7 @@ def make_figures(rows, outdir):
 
     if "baseline" in T:
         conds = ["nominal", "loss30", "partition2", "attrition30", "adversarial"]
-        algos = ["oracle", "hesk", "hesk3", "hesk6", "cbba", "central", "cnp", "independent"]
+        algos = ["oracle", "hesk", "hesk3", "hesk6", "cbba", "central", "central_t12", "cnp", "independent"]
         fig, ax = plt.subplots(figsize=(12, 4.6))
         w = 0.8 / len(algos)
         for i, algo in enumerate(algos):
@@ -211,9 +228,9 @@ def make_figures(rows, outdir):
                     continue
                 x = j + (i - (len(algos) - 1) / 2) * w
                 ax.plot([x, x], [r["utility_ratio_lo"], r["utility_ratio_hi"]], color=c, linewidth=2)
-                ax.plot(x, r["utility_ratio"], marker=mk, color=c, markersize=7, markeredgecolor=SURFACE,
-                        label=lab if j == 0 else None, linestyle="none")
-        ax.set_xticks(range(len(conds)), conds)
+                ax.plot(x, r["utility_ratio"], marker=mk, color=c, markersize=7, label=lab if j == 0 else None,
+                        linestyle="none", **_mk(mk, c))
+        ax.set_xticks(range(len(conds)), [COND_LABEL[c] for c in conds])
         ax.set(title="Baseline comparison: mean utility with 95% CI (30 paired seeds per point)",
                ylabel="utility retained")
         ax.legend(ncol=4, fontsize=8, loc="lower left")
@@ -236,10 +253,10 @@ def make_figures(rows, outdir):
                 ax.plot([p["lo"], p["hi"]], [i, i], color=col, linewidth=2)
                 ax.plot(p["diff"], i, "o", color=col, markeredgecolor=SURFACE)
             ax.axvline(0, color=INK2, linewidth=1)
-            ax.set(title=cond, xlabel="Δ utility vs full HESK v3 (paired)")
-            ax.set_yticks(range(len(abls)), [a.replace("abl-", "− ") for a in abls])
+            ax.set(title=COND_LABEL[cond], xlabel="Δ utility when removed (paired, 95% CI)")
+            ax.set_yticks(range(len(abls)), ["without " + ABL_LABEL[a] for a in abls])
         axes[0].invert_yaxis()
-        fig.suptitle("Ablation: remove one component at a time (red = component helps, green = component hurts)",
+        fig.suptitle("Ablation of HESK v3, 30 paired seeds (red: the component helps; green: removing it helps; grey: no effect)",
                      fontsize=11, fontweight="bold")
         fig.tight_layout()
         fig.savefig(os.path.join(outdir, "fig_ablation.png"), dpi=150)
@@ -267,8 +284,9 @@ def make_figures(rows, outdir):
     if "attrition" in T:
         fig, axes = plt.subplots(1, 3, figsize=(15, 4.2), sharey=True)
         for ax, mode in zip(axes, ["random", "scarce", "leader"]):
-            _lines(ax, T["attrition"], "kill", ["hesk3", "hesk6", "cbba", "central", "cnp"], filt={"mode": mode})
-            ax.set(title=f"Attrition — adversary kills: {mode}", xlabel="fraction of fleet destroyed", xlim=(-0.02, 0.8))
+            _lines(ax, T["attrition"], "kill", ["hesk6", "cbba", "central", "central_t12", "cnp"], filt={"mode": mode})
+            ax.set(title={"random": "Random kills", "scarce": "Adversary hunts rare drones", "leader": "Adversary targets the coordinator"}[mode],
+                   xlabel="fraction of fleet destroyed", xlim=(-0.02, 0.85))
         axes[0].set_ylabel("utility retained")
         fig.tight_layout()
         fig.savefig(os.path.join(outdir, "fig_attrition.png"), dpi=150)
@@ -277,7 +295,7 @@ def make_figures(rows, outdir):
     if "partition" in T:
         fig, axes = plt.subplots(1, 3, figsize=(15, 4.2), sharey=True)
         for ax, k in zip(axes, [2.0, 3.0, 4.0]):
-            _lines(ax, T["partition"], "dur", ["hesk3", "hesk6", "cbba", "central", "central_noquorum"], filt={"k": k})
+            _lines(ax, T["partition"], "dur", ["hesk6", "cbba", "central_t12", "central_noquorum"], filt={"k": k})
             ax.set(title=f"Network split into {int(k)} islands", xlabel="partition duration (s)", xlim=(40, 400))
         axes[0].set_ylabel("utility retained")
         fig.tight_layout()
@@ -287,7 +305,7 @@ def make_figures(rows, outdir):
     if "burst" in T:
         fig, axes = plt.subplots(1, 3, figsize=(15, 4.2), sharey=True)
         for ax, p in zip(axes, [0.2, 0.4, 0.6]):
-            _lines(ax, T["burst"], "burst", ["hesk3", "hesk6", "cbba", "central"], filt={"loss": p})
+            _lines(ax, T["burst"], "burst", ["hesk3", "hesk6", "cbba", "central", "central_t12"], filt={"loss": p})
             ax.set_xscale("log", base=2)
             ax.set(title=f"Bursty loss, mean loss = {p:.0%}", xlabel="mean burst length (packets, log scale)")
         axes[0].set_ylabel("utility retained")
@@ -297,9 +315,13 @@ def make_figures(rows, outdir):
 
     if "latency" in T:
         fig, ax = plt.subplots(figsize=(7, 4.2))
-        _lines(ax, T["latency"], "lat", ["hesk5", "hesk6", "cbba", "central", "cnp"])
+        _lines(ax, T["latency"], "lat", ["hesk5", "hesk6", "cbba", "central_t12", "cnp"])
         ax.set_xscale("log")
-        ax.set(title="Utility vs one-way link latency", xlabel="latency (s, log scale)", ylabel="utility retained")
+        ax.set(title="Utility vs one-way link latency (fixed 350 ms bid window → cliff)", xlabel="one-way latency (log scale)",
+               ylabel="utility retained")
+        ticks = [0.02, 0.1, 0.25, 0.5, 1.0, 2.0]
+        ax.set_xticks(ticks, ["20 ms", "100 ms", "250 ms", "500 ms", "1 s", "2 s"])
+        ax.minorticks_off()
         fig.tight_layout()
         fig.savefig(os.path.join(outdir, "fig_latency.png"), dpi=150)
         made.append("fig_latency.png")
@@ -334,11 +356,11 @@ def make_figures(rows, outdir):
             c, mk, _, lab = STYLE["hesk5"]
             ax.fill_between(xs, lo, hi, color=c, alpha=0.12, linewidth=0)
             ax.plot(xs, ys, color=c, marker=mk, label="HESK v5 at threshold")
-            for ref in ["cbba", "hesk4"]:
+            for ref in ["cbba", "central_t12", "hesk4"]:
                 if ref in rows_c:
                     rc, _, rls, rlab = STYLE[ref]
                     ax.axhline(rows_c[ref]["utility_ratio"], color=rc, linestyle="--", linewidth=1.5, label=rlab)
-            ax.set(title=cond, xlabel="switch to claims when local loss estimate exceeds")
+            ax.set(title=COND_LABEL[cond], xlabel="switch to claims when local loss estimate exceeds")
         axes[0].set_ylabel("utility retained")
         axes[0].legend(fontsize=8, loc="lower left")
         fig.suptitle("HESK v5 switching threshold (30 paired seeds)", fontsize=11, fontweight="bold")
@@ -358,11 +380,14 @@ def make_figures(rows, outdir):
                     continue
                 p = ps[cell]
                 ax.plot([p["lo"], p["hi"]], [i + off, i + off], color=c, linewidth=2)
-                ax.plot(p["diff"], i + off, mk, color=c, markeredgecolor=SURFACE, label=f"{lab} − CBBA" if i == 0 else None)
+                ax.plot(p["diff"], i + off, mk, color=c, label=f"{lab} − CBBA" if i == 0 else None, **_mk(mk, c))
         ax.axvline(0, color=INK2, linewidth=1)
-        ax.set_yticks(range(len(cells)), cells)
+        names = {"burstloss": "bursty loss", "partition": "partition", "scarcekill": "rare-drone kills", "degrade": "sensor failures"}
+        ax.set_yticks(range(len(cells)), [("only " if c.startswith("only") else "all except ") + names[c.split("=")[1]]
+                                          for c in cells])
+        ax.axhline(3.5, color=GRID, linewidth=1.5)
         ax.invert_yaxis()
-        ax.set(title="Failure analysis: which stressor flips the result? (paired Δ utility vs CBBA, 95% CI)",
+        ax.set(title="Failure analysis: each stressor alone vs all-but-one (paired Δ utility vs CBBA, 95% CI)",
                xlabel="Δ utility (right of zero = HESK better)")
         ax.legend(fontsize=8, loc="lower right")
         fig.tight_layout()
@@ -380,7 +405,7 @@ def write_tables(rows, outdir):
             w.writeheader()
             w.writerows(tab)
     comps = []
-    refs = ["cbba", "central", "central_noquorum", "cnp", "oracle", "independent", "hesk", "hesk3"]
+    refs = ["cbba", "central", "central_t12", "central_noquorum", "cnp", "oracle", "independent", "hesk", "hesk3"]
     for suite in ["baseline", "loss", "attrition", "partition", "burst", "latency", "fd", "scale", "decomp", "fdkill",
                   "threshold"]:
         present = {r["algo"] for r in rows if r["suite"] == suite}
