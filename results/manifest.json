@@ -1,0 +1,36 @@
+{
+  "git_commit": "904b0f43b40366af55c2667a9d29a1d54cd5a4d8",
+  "git_dirty": true,
+  "python": "3.11.15",
+  "platform": "Linux-6.18.44-fc-v70-x86_64-with-glibc2.39",
+  "numpy": "2.4.6",
+  "command": "/home/user/hesk/src/hesk/bench/__main__.py run all --jobs 4 --out results",
+  "experiments": [
+    "E1_audit",
+    "E2_groups",
+    "E3_spread",
+    "E4_handoff_gap",
+    "E5_skew",
+    "E6_scale",
+    "E7_ablation",
+    "E8_intra_group",
+    "E10_root_cause",
+    "E9_algebra",
+    "E11_alloc"
+  ],
+  "seeds": {
+    "E1_audit": 100,
+    "E2_groups": 60,
+    "E3_spread": 60,
+    "E4_handoff_gap": 60,
+    "E5_skew": 60,
+    "E6_scale": 60,
+    "E7_ablation": 100,
+    "E8_intra_group": 60,
+    "E10_root_cause": 60,
+    "E9_algebra": 60,
+    "E11_alloc": 200
+  },
+  "wall_seconds": 1178.1,
+  "pythonhashseed": "unset"
+}
