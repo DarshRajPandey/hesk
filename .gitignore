@@ -2,3 +2,13 @@
 # Local docs
 docs/CONSTRUCTION_GUIDE.md
 docs/HESK_SCOPE.md
+
+# Python build/cache artifacts
+__pycache__/
+*.pyc
+*.egg-info/
+.venv/
+.pytest_cache/
+
+# Raw experiment outputs (regenerate with `make reproduce`); curated results live in results/
+runs/
