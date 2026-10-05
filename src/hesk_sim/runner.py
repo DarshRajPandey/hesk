@@ -29,6 +29,7 @@ ALGORITHMS: Dict[str, tuple] = {
     "hesk3":            (HeskAgent, H3),
     "hesk4":            (HeskAgent, {**H3, "claims": True}),
     "hesk5":            (HeskAgent, {**H3, "claims": "adaptive"}),   # switching threshold 0.3
+    "hesk6":            (HeskAgent, {**H3, "claims": "adaptive", "adaptive_timing": True}),
     **{f"hesk5_t{t:g}": (HeskAgent, {**H3, "claims": "adaptive", "adapt_threshold": t}) for t in (0.05, 0.1, 0.2, 0.5)},
     "cbba":             (CBBAAgent, {}),
     "central":          (CentralAgent, {"quorum": True}),

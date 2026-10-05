@@ -56,6 +56,7 @@ class AgentBase:
         self.net: Network = None     # type: ignore
         self._next_hb = 0.0
         self._hb_rx: List[float] = []       # receive times of peer heartbeats (local loss estimate)
+        self._delays: List[float] = []      # recent one-way heartbeat delays (local latency estimate)
 
     # ── lifecycle ────────────────────────────────────────────────────
     def start(self, loop: EventLoop, net: Network, initial_tasks: List[SimTask]) -> None:
@@ -107,6 +108,9 @@ class AgentBase:
         pi.last_heard = now
         if msg.kind == "HB":
             self._hb_rx.append(now)
+            self._delays.append(now - msg.payload["t"])   # assumes GPS-disciplined clocks
+            if len(self._delays) > 200:
+                del self._delays[:100]
             p = msg.payload
             pi.caps, pi.pos, pi.energy, pi.busy, pi.report_time = dict(p["caps"]), p["pos"], p["energy"], p["busy"], p["t"]
         self.handle(msg, now)
@@ -137,6 +141,13 @@ class AgentBase:
         if expected <= 0 or now < window:
             return 0.0
         return max(0.0, 1.0 - len(self._hb_rx) / expected)
+
+    def delay_p90(self) -> float:
+        """90th-percentile one-way delay of recently received heartbeats (0 if unknown)."""
+        if len(self._delays) < 5:
+            return 0.0
+        d = sorted(self._delays[-100:])
+        return d[int(0.9 * (len(d) - 1))]
 
     def travel_cost(self, task: SimTask) -> float:
         return math.dist(self.body.pos, task.pos) / self.cfg.arena

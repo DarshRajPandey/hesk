@@ -45,7 +45,7 @@ PROGRESS_HORIZON = 300.0
 
 DEFAULT_FLAGS = dict(scarcity=True, tiers=True, coalitions=True, upgrade=True, gossip=True, reconcile="epoch",
                      coalition_scarcity=False, coalition_pen_max=0.5, lease=False, claims=False,
-                     adapt_threshold=0.3)
+                     adapt_threshold=0.3, adaptive_timing=False)
 CLAIM_MARGIN = 0.02      # a challenger must beat a live incumbent's score by this much
 SWITCH_PERIOD = 5.0      # how often a busy drone reconsiders its claim
 W_COST = 0.1             # score = priority × tier quality − W_COST × Alg-004 system cost
@@ -267,6 +267,23 @@ class HeskAgent(AgentBase):
         self.tasks[task.id] = task
         self.dynamic[task.id] = task
 
+    # ── timing ───────────────────────────────────────────────────────
+    def _bid_window(self) -> float:
+        """hesk6: the bid window must cover a measured round trip, not a hard-coded constant."""
+        if not self.f["adaptive_timing"]:
+            return BID_WINDOW
+        return max(BID_WINDOW, 2.5 * self.delay_p90() + 0.1)
+
+    def _award_timeout(self) -> float:
+        if not self.f["adaptive_timing"]:
+            return AWARD_TIMEOUT
+        return max(AWARD_TIMEOUT, 2.5 * self.delay_p90() + 0.2)
+
+    def _commit_hold(self) -> float:
+        if not self.f["adaptive_timing"]:
+            return 2.0
+        return max(2.0, 2 * self._bid_window() + 2.5 * self.delay_p90())
+
     # ── bidder side ──────────────────────────────────────────────────
     def _penalty(self, me, required, swarm, cache: dict) -> float:
         """Alg 004 scarcity penalty, memoised per required-dimension set within one evaluation."""
@@ -304,7 +321,7 @@ class HeskAgent(AgentBase):
             per = {ti: v for ti, v in per.items() if v[0] is not None}
             if not per:
                 return
-        self.commit_until = now + 2.0
+        self.commit_until = now + self._commit_hold()
         bid = {"tid": tid, "epoch": p["epoch"], "per": per, "caps": dict(self.body.caps), "energy": self.body.energy}
         self.send("BID", bid, size=48 + 16 * len(per) + 48, dst=src)
 
@@ -338,13 +355,13 @@ class HeskAgent(AgentBase):
         v = self.own(tid)
         epoch = (v["epoch"] if v else 0) + 1
         self.auction = {"tid": tid, "epoch": epoch, "tiers": tiers, "bids": {}, "acks": {},
-                        "phase": "bid", "deadline": now + BID_WINDOW, "upgrade": upgrade}
+                        "phase": "bid", "deadline": now + self._bid_window(), "upgrade": upgrade}
         self.stats["auctions"] += 1
         self.send("ANN", {"tid": tid, "epoch": epoch, "tiers": tiers}, size=48)
         if self.my is None and now >= self.commit_until:
             per = self._bid_for(tid, tiers, now)
             self.auction["bids"][self.id] = {"per": per, "caps": dict(self.body.caps), "energy": self.body.energy}
-            self.commit_until = now + 2.0
+            self.commit_until = now + self._commit_hold()
 
     def _decide(self, now: float) -> None:
         a = self.auction
@@ -373,7 +390,7 @@ class HeskAgent(AgentBase):
 
     def _award(self, members: tuple, tier: int, mq: float, now: float) -> None:
         a = self.auction
-        a["phase"], a["deadline"], a["members"] = "award", now + AWARD_TIMEOUT, members
+        a["phase"], a["deadline"], a["members"] = "award", now + self._award_timeout(), members
         value = {"assignee": "+".join(members), "members": list(members), "tier": tier, "epoch": a["epoch"],
                  "rev": 0, "released": False, "since": now, "ts": now, "match_quality": mq,
                  "lease": {m: now for m in members}, "preempt": a["upgrade"]}

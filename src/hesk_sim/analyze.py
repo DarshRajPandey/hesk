@@ -320,6 +320,31 @@ def make_figures(rows, outdir):
         fig.tight_layout()
         fig.savefig(os.path.join(outdir, "fig_scale.png"), dpi=150)
         made.append("fig_scale.png")
+    if "threshold" in T:
+        conds = ["nominal", "loss30", "adversarial"]
+        variants = [("hesk5_t0.05", 0.05), ("hesk5_t0.1", 0.1), ("hesk5_t0.2", 0.2), ("hesk5", 0.3), ("hesk5_t0.5", 0.5)]
+        fig, axes = plt.subplots(1, 3, figsize=(14, 4.2), sharey=False)
+        for ax, cond in zip(axes, conds):
+            rows_c = {r["algo"]: r for r in T["threshold"] if r["cell"] == cond}
+            xs = [t for a, t in variants if a in rows_c]
+            ys = [rows_c[a]["utility_ratio"] for a, t in variants if a in rows_c]
+            lo = [rows_c[a]["utility_ratio_lo"] for a, t in variants if a in rows_c]
+            hi = [rows_c[a]["utility_ratio_hi"] for a, t in variants if a in rows_c]
+            c, mk, _, lab = STYLE["hesk5"]
+            ax.fill_between(xs, lo, hi, color=c, alpha=0.12, linewidth=0)
+            ax.plot(xs, ys, color=c, marker=mk, label="HESK v5 at threshold")
+            for ref in ["cbba", "hesk4"]:
+                if ref in rows_c:
+                    rc, _, rls, rlab = STYLE[ref]
+                    ax.axhline(rows_c[ref]["utility_ratio"], color=rc, linestyle="--", linewidth=1.5, label=rlab)
+            ax.set(title=cond, xlabel="switch to claims when local loss estimate exceeds")
+        axes[0].set_ylabel("utility retained")
+        axes[0].legend(fontsize=8, loc="lower left")
+        fig.suptitle("HESK v5 switching threshold (30 paired seeds)", fontsize=11, fontweight="bold")
+        fig.tight_layout()
+        fig.savefig(os.path.join(outdir, "fig_threshold.png"), dpi=150)
+        made.append("fig_threshold.png")
+
     if "decomp" in T:
         cells = ["only=burstloss", "only=partition", "only=scarcekill", "only=degrade",
                  "all-minus=burstloss", "all-minus=partition", "all-minus=scarcekill", "all-minus=degrade"]
@@ -355,9 +380,11 @@ def write_tables(rows, outdir):
             w.writerows(tab)
     comps = []
     refs = ["cbba", "central", "central_noquorum", "cnp", "oracle", "independent", "hesk", "hesk3"]
-    for suite in ["baseline", "loss", "attrition", "partition", "burst", "latency", "fd", "scale", "decomp"]:
+    for suite in ["baseline", "loss", "attrition", "partition", "burst", "latency", "fd", "scale", "decomp", "fdkill",
+                  "threshold"]:
         present = {r["algo"] for r in rows if r["suite"] == suite}
-        for a in ["hesk3", "hesk5"]:
+        heads = ["hesk3", "hesk5"] + (["hesk5_t0.05", "hesk5_t0.1", "hesk5_t0.2", "hesk5_t0.5"] if suite == "threshold" else [])
+        for a in heads:
             for b in refs:
                 if a != b and a in present and b in present:
                     comps += [dict(suite=suite, **p) for p in paired(rows, suite, a, b)]

@@ -10,8 +10,8 @@ from __future__ import annotations
 
 from typing import Dict, Iterator, List, Tuple
 
-MAIN = ["oracle", "independent", "hesk", "hesk2", "hesk3", "hesk4", "hesk5", "cbba", "central", "central_noquorum", "cnp"]
-CORE = ["hesk3", "hesk5", "cbba", "central", "cnp"]
+MAIN = ["oracle", "independent", "hesk", "hesk2", "hesk3", "hesk4", "hesk5", "hesk6", "cbba", "central", "central_noquorum", "cnp"]
+CORE = ["hesk3", "hesk5", "hesk6", "cbba", "central", "cnp"]
 ABLATIONS = ["hesk3", "abl-lease", "abl-coalscarcity", "abl-scarcity", "abl-tiers", "abl-coalitions",
              "abl-upgrade", "abl-gossip", "abl-reconcile", "abl-lww", "abl-raw008"]
 
@@ -44,7 +44,7 @@ def suite_jobs(name: str, reps: int | None = None) -> List[Job]:
     if name == "loss":
         r = reps or 20
         cells = {f"loss={p:.1f}": (dict(loss=p), {}) for p in [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]}
-        return list(_grid(name, cells, ["independent", "hesk", "hesk2", "hesk3", "hesk4", "hesk5", "cbba", "central", "cnp"], r))
+        return list(_grid(name, cells, ["independent", "hesk", "hesk2", "hesk3", "hesk4", "hesk5", "hesk6", "cbba", "central", "cnp"], r))
     if name == "burst":
         r = reps or 15
         cells = {f"loss={p:.1f},burst={b:g}": (dict(loss=p, burst_len=b), {})
@@ -54,7 +54,7 @@ def suite_jobs(name: str, reps: int | None = None) -> List[Job]:
         r = reps or 15
         cells = {f"k={k},dur={d}": (dict(partitions=[(150.0, 150.0 + d, k)]), {})
                  for k in [2, 3, 4] for d in [60, 150, 300]}
-        return list(_grid(name, cells, ["hesk3", "hesk5", "cbba", "central", "central_noquorum"], r))
+        return list(_grid(name, cells, ["hesk3", "hesk5", "hesk6", "cbba", "central", "central_noquorum"], r))
     if name == "attrition":
         r = reps or 10
         cells = {f"kill={f:.1f},mode={m}": (dict(kill_frac=f, kill_mode=m), {})
@@ -91,14 +91,14 @@ def suite_jobs(name: str, reps: int | None = None) -> List[Job]:
                     scen.update(v)
             cells[f"all-minus={drop}"] = (scen, {})
             cells[f"only={drop}"] = (parts[drop], {})
-        return list(_grid(name, cells, ["hesk3", "hesk5", "cbba", "central"], r))
+        return list(_grid(name, cells, ["hesk3", "hesk5", "hesk6", "cbba", "central"], r))
     if name == "fdkill":
         # Fairness check: is a long failure-detector timeout free? Not when drones really die.
         # Every algorithm gets each timeout, so each can be compared at its best setting.
         r = reps or 20
         cells = {f"fd_k={k:g},loss={p:.1f}": (dict(loss=p, kill_frac=0.3), {"fd_k": k})
                  for k in [3, 6, 12] for p in [0.3, 0.5]}
-        return list(_grid(name, cells, ["hesk5", "cbba", "central"], r))
+        return list(_grid(name, cells, ["hesk5", "hesk6", "cbba", "central"], r))
     if name == "threshold":
         # Design-parameter sweep: hesk5's auction→claims switching threshold (local loss estimate).
         # Thresholds are algorithm variants (not cells) so every threshold sees identical seeds.
