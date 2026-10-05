@@ -15,6 +15,7 @@ fates; only the replica logic differs.
 from __future__ import annotations
 
 import heapq
+import math
 import random
 from dataclasses import asdict, dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Tuple
@@ -55,6 +56,8 @@ class Params:
     obs_per_node: int = 6
     res_observers: int = 3
     res_period: float = 1.5
+    crash_frac: float = 0.0       # fraction of nodes that crash-stop at a random time during the mission
+    split: str = "even"           # even | majority (first group holds a strict majority of nodes)
     max_units: int = 2_000        # abort guard: payload-size proxy (see Replica.units); legit payloads are < 20
 
     @property
@@ -71,6 +74,35 @@ def _rng(seed: int, stream: str) -> random.Random:
     return random.Random(f"hesk:{seed}:{stream}")
 
 
+class World:
+    """What an *idealised* consensus layer is allowed to know: who is reachable and alive.
+
+    Used only by the quorum baseline, and deliberately generous to it: leader election is
+    instantaneous and failure detection perfect; a write commits iff the writer's side of the
+    network holds a majority of the configured cluster and enough acks survive packet loss.
+    """
+
+    def __init__(self, p: Params, nodes, group_of, crash_at, rng: random.Random):
+        self.p, self.nodes, self.group_of, self.crash_at, self.rng = p, nodes, group_of, crash_at, rng
+        self.t = 0.0
+        self.log: Dict[str, Any] = {}
+
+    def alive(self, n: str) -> bool:
+        return self.t < self.crash_at[n]
+
+    def commit_ok(self, node: str, attempts: int = 3) -> bool:
+        p = self.p
+        partitioned = p.t_connected <= self.t < p.heal
+        peers = [m for m in self.nodes if m != node and self.alive(m)
+                 and (not partitioned or self.group_of[m] == self.group_of[node])]
+        need = len(self.nodes) // 2 + 1 - 1  # acks needed besides the writer itself
+        ack_p = (1 - p.loss) ** 2  # request and reply must both survive
+        for _ in range(attempts):
+            if sum(self.rng.random() < ack_p for _ in peers) >= need:
+                return True
+        return False
+
+
 def run_scenario(params: Params, make_replica: ReplicaFactory, seed: int) -> Dict[str, Any]:
     p = params
     rn, rt = _rng(seed, "network"), _rng(seed, "topology")
@@ -78,8 +110,19 @@ def run_scenario(params: Params, make_replica: ReplicaFactory, seed: int) -> Dic
     skew = {n: rt.gauss(0.0, p.clock_skew) for n in nodes}
     order = nodes[:]
     rt.shuffle(order)
-    group_of = {n: i % p.n_groups for i, n in enumerate(order)}
+    if p.split == "majority" and p.n_groups > 1:
+        big = p.n_nodes // 2 + 1
+        group_of = {n: (0 if i < big else 1 + (i - big) % (p.n_groups - 1)) for i, n in enumerate(order)}
+    else:
+        group_of = {n: i % p.n_groups for i, n in enumerate(order)}
+    rc_ = _rng(seed, "crash")
+    victims = set(rc_.sample(nodes, int(round(p.crash_frac * p.n_nodes)))) if p.crash_frac > 0 else set()
+    crash_at = {n: (rc_.uniform(0.5 * p.t_connected, p.heal) if n in victims else math.inf) for n in nodes}
     replicas = {n: make_replica(n) for n in nodes}
+    world = World(p, nodes, group_of, crash_at, _rng(seed, "quorum"))
+    for r in replicas.values():
+        if hasattr(r, "attach"):
+            r.attach(world)
 
     def reachable(a: str, b: str, t: float) -> bool:
         return not (p.t_connected <= t < p.heal) or group_of[a] == group_of[b]
@@ -92,7 +135,7 @@ def run_scenario(params: Params, make_replica: ReplicaFactory, seed: int) -> Dic
         heapq.heappush(q, (t, ctr[0], kind, data))
 
     # ── ground truth, filled in as ops execute ──
-    truth: Dict[str, Any] = {"chain": {}, "contest_max": {}, "ctr": {}, "obs": {}, "res": {}, "res_t": {}}
+    truth: Dict[str, Any] = {"chain": {}, "contest_max": {}, "ctr": {}, "obs": {}, "res": {}, "res_t": {}, "own_attempts": 0, "own_accepted": 0, "contest_accepted": {}}
     token = [0]
 
     def next_token() -> int:
@@ -174,14 +217,30 @@ def run_scenario(params: Params, make_replica: ReplicaFactory, seed: int) -> Dic
             return tuple(tuple(sorted(rep.read_obs(k)[0])) for k in obs_keys)
         return tuple(rep.read_resource(k) for k in res_keys)
 
+    def alive(n: str, t: float) -> bool:
+        return t < crash_at[n]
+
+    def do_claim(n: str, k: str, prog: float, qual: float, t: float) -> bool:
+        world.t = t
+        truth["own_attempts"] += 1
+        with at(n, t):
+            ok = replicas[n].claim(k, n, prog, qual)
+        ok = ok is None or bool(ok)  # replicas that cannot refuse return None
+        truth["own_accepted"] += int(ok)
+        return ok
+
     while q:
         t, _, kind, d = heapq.heappop(q)
+        world.t = t
+        if kind in ("claim", "inc", "obs", "res", "tick") and not alive(d[0], t):
+            continue
         if kind == "claim":
             n, k, prog, qual, role = d
-            with at(n, t):
-                replicas[n].claim(k, n, prog, qual)
+            if not do_claim(n, k, prog, qual, t):
+                continue
             if role == "contest":
                 truth["contest_max"][k] = max(truth["contest_max"].get(k, 0.0), prog)
+                truth["contest_accepted"][k] = truth["contest_accepted"].get(k, 0) + 1
             elif role == "chain":
                 truth["chain"][k] = n
         elif kind == "handoff":
@@ -193,13 +252,13 @@ def run_scenario(params: Params, make_replica: ReplicaFactory, seed: int) -> Dic
             if j >= len(seq) or t > deadline:
                 continue
             n = seq[j]
+            if not alive(n, t):
+                continue
             if t < due:
                 push(due, "try", k, seq, j, due, deadline)
                 continue
             seen = replicas[n].read_owner(k)
-            if seen is not None and seen[0] == seq[j - 1]:
-                with at(n, t):
-                    replicas[n].claim(k, n, 0.10 if p.chain_restart else 0.10 + 0.10 * j, 0.8)
+            if seen is not None and seen[0] == seq[j - 1] and do_claim(n, k, 0.10 if p.chain_restart else 0.10 + 0.10 * j, 0.8, t):
                 truth["chain"][k] = n
                 push(t + p.handoff_gap, "try", k, seq, j + 1, t + p.handoff_gap, deadline)
             else:
@@ -227,13 +286,15 @@ def run_scenario(params: Params, make_replica: ReplicaFactory, seed: int) -> Dic
             with at(n, t):
                 payload = replicas[n].snapshot()
             for peer, (lost, lat, dup, dlat) in sends:
-                if lost or not reachable(n, peer, t):
+                if lost or not reachable(n, peer, t) or not alive(peer, t):
                     continue
                 push(t + lat, "deliver", n, peer, payload)
                 if dup:
                     push(t + dlat, "deliver", n, peer, payload)
         elif kind == "deliver":
             src, dst, payload = d
+            if not alive(dst, t):
+                continue
             u = replicas[dst].units(payload)
             max_units_seen = max(max_units_seen, u)
             if u > p.max_units:
@@ -245,17 +306,27 @@ def run_scenario(params: Params, make_replica: ReplicaFactory, seed: int) -> Dic
             with at(dst, t):
                 replicas[dst].receive(replicas[dst].clone_payload(payload), src, reconnected)
         elif kind == "check":
+            live = [n for n in nodes if alive(n, t)]
             for cls in stable_since:
-                ds = {digest(cls, replicas[n]) for n in nodes}
+                ds = {digest(cls, replicas[n]) for n in live}
                 if len(ds) == 1:
                     if stable_since[cls] is None:
                         stable_since[cls] = t
                 else:
                     stable_since[cls] = None
 
-    out = _score(p, nodes, replicas, truth, chain_keys, contest_keys, ctr_keys, obs_keys, res_keys,
+    live = [n for n in nodes if crash_at[n] == math.inf]
+    out = _score(p, live, replicas, truth, chain_keys, contest_keys, ctr_keys, obs_keys, res_keys,
                  stable_since, delivered, digest)
     out["aborted"] = int(aborted)
+    out["own_accept"] = truth["own_accepted"] / truth["own_attempts"] if truth["own_attempts"] else None
+    if contest_keys:
+        acc = [truth["contest_accepted"].get(k, 0) for k in contest_keys]
+        out["contest_orphan"] = sum(a == 0 for a in acc) / len(acc)          # reassigned task nobody could take
+        out["contest_dup"] = sum(max(0, a - 1) for a in acc) / len(acc)      # extra concurrent executors
+    else:
+        out["contest_orphan"] = out["contest_dup"] = None
+    out["live_nodes"] = len(live)
     out["max_units"] = max_units_seen
     return out
 
@@ -295,7 +366,9 @@ def _score(p, nodes, replicas, truth, chain_keys, contest_keys, ctr_keys, obs_ke
     for k in contest_keys:
         views = [replicas[n].read_owner(k) for n in nodes]
         splits += int(len({v[0] if v else None for v in views}) > 1)
-        best = truth["contest_max"].get(k, 0.0)
+        if k not in truth["contest_max"]:
+            continue  # no claim was accepted (e.g. refused by a quorum): regret is undefined
+        best = truth["contest_max"][k]
         regrets.extend(best - (v[1] if v else 0.0) for v in views)
     out["contest_split"] = splits / len(contest_keys) if contest_keys else None
     out["contest_regret"] = sum(regrets) / len(regrets) if regrets else None

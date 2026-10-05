@@ -133,6 +133,7 @@ def _flatten(v: Any, out: list) -> None:
 class LatticeConfig:
     """Each field's non-default value re-introduces the corresponding legacy behaviour."""
     name: str = "hesk-l"
+    ownership: str = "mv"        # mv (causal multi-value register) | lww (last wall-clock write wins)
     resolver: str = "bucketed"   # bucketed | exact | eps          (ownership read policy)
     counter: str = "gcounter"    # gcounter | max                   (max = legacy lost-update)
     observations: str = "dedup"  # dedup | append                   (append = legacy non-idempotent)
@@ -150,6 +151,10 @@ ABLATIONS: Tuple[LatticeConfig, ...] = (
     replace(FULL, name="hesk-l/-all", resolver="eps", counter="max", observations="append", resource="drift_guard"),
 )
 
+# Conventional AP baseline (Apache Cassandra / DynamoDB global tables style): every CRDT fix HESK-L
+# has, except ownership, which is a last-writer-wins register on wall-clock time.
+LWW_GOSSIP = replace(FULL, name="baseline/lww-gossip", ownership="lww")
+
 
 class LatticeReplica(Replica):
     def __init__(self, node_id: str, cfg: LatticeConfig = FULL):
@@ -158,7 +163,10 @@ class LatticeReplica(Replica):
 
     # writes
     def claim(self, key, assignee, progress, quality):
-        self.cells.setdefault(key, lat.MVRegister()).write(self.node_id, assignee, progress, quality, local_wall_time())
+        if self.cfg.ownership == "lww":
+            self.cells.setdefault(key, lat.LWW()).set(self.node_id, (assignee, progress, quality), local_wall_time())
+        else:
+            self.cells.setdefault(key, lat.MVRegister()).write(self.node_id, assignee, progress, quality, local_wall_time())
 
     def increment(self, key):
         if self.cfg.counter == "gcounter":
@@ -211,6 +219,8 @@ class LatticeReplica(Replica):
     # reads
     def read_owner(self, key):
         c = self.cells.get(key)
+        if isinstance(c, lat.LWW):
+            return c.value
         v = c.resolve(self.cfg.resolver) if c is not None else None
         return None if v is None else (v.assignee, v.progress, v.quality)
 
@@ -254,3 +264,101 @@ class _GuardedValue:
 def _as_entry(g: _GuardedValue) -> LedgerEntry:
     return LedgerEntry("k", g.value, StateSemanticType.RESOURCE, g.node, 0, g.wall_time, 1.0,
                        Provenance(g.node, ObservationType.DIRECT, 0))
+
+
+# ─── Conventional CP baseline: an idealised Raft / Paxos replicated state machine ──────────
+
+class QuorumReplica(Replica):
+    """A replicated log behind a quorum (the etcd / Consul / CockroachDB model), idealised.
+
+    * A write commits only if the writer can reach a majority of the configured cluster
+      (``World.commit_ok``); leader election and failure detection are free and instant.
+    * Ownership claims are compare-and-set on the owner the node last saw, so a task can never
+      have two committed owners. A claim that cannot commit is refused: the task stays orphaned.
+    * Counter increments and observations that cannot commit are queued and retried (nothing is
+      lost unless the node dies first); stale telemetry (resource reports) is dropped.
+    * A node's reads come from its last synchronisation with the majority (follower reads).
+    """
+
+    def __init__(self, node_id: str):
+        self.node_id = node_id
+        self.view: Dict[str, Any] = {}
+        self.queue: list = []
+        self.world = None
+
+    def attach(self, world) -> None:
+        self.world = world
+
+    def _sync(self) -> None:
+        self.view = copy.deepcopy(self.world.log)
+
+    def _apply(self, op) -> None:
+        kind, key, val = op
+        log = self.world.log
+        if kind == "inc":
+            log[key] = log.get(key, 0) + 1
+        elif kind == "obs":
+            lst = log.setdefault(key, [])
+            if val not in lst:
+                lst.append(val)
+                lst.sort()
+                del lst[:-lat.OBS_TOP_K]
+
+    def claim(self, key, assignee, progress, quality):
+        if not self.world.commit_ok(self.node_id):
+            return False
+        expected = self.view.get(key)
+        if self.world.log.get(key) != expected:  # someone else committed first: CAS fails
+            self._sync()
+            return False
+        self.world.log[key] = (assignee, progress, quality)
+        self._sync()
+        return True
+
+    def _write(self, op) -> None:
+        if self.world.commit_ok(self.node_id):
+            self._apply(op)
+            self._sync()
+        else:
+            self.queue.append(op)
+
+    def increment(self, key):
+        self._write(("inc", key, None))
+
+    def observe(self, key, token):
+        self._write(("obs", key, token))
+
+    def report(self, key, token):
+        if self.world.commit_ok(self.node_id):
+            self.world.log[key] = token
+            self._sync()
+
+    def snapshot(self):  # called on every gossip tick: heartbeat to the leader
+        if self.world.commit_ok(self.node_id, attempts=1):
+            for op in self.queue:
+                self._apply(op)
+            self.queue = []
+            self._sync()
+        return None
+
+    def clone_payload(self, payload):
+        return None
+
+    def receive(self, payload, sender, reconnected):
+        return None
+
+    def read_owner(self, key):
+        return self.view.get(key)
+
+    def read_counter(self, key):
+        return self.view.get(key, 0)
+
+    def read_obs(self, key):
+        lst = self.view.get(key, [])
+        return frozenset(lst), len(lst)
+
+    def read_resource(self, key):
+        return self.view.get(key)
+
+    def state_bytes(self):
+        return len(pickle.dumps(self.view))

@@ -2,7 +2,7 @@
 from functools import partial
 from typing import Callable, Dict
 
-from hesk.sim.replicas import ABLATIONS, LatticeReplica, LegacyReplica, Replica
+from hesk.sim.replicas import ABLATIONS, LWW_GOSSIP, LatticeReplica, LegacyReplica, QuorumReplica, Replica
 
 Factory = Callable[[str], Replica]
 
@@ -17,6 +17,9 @@ IMPLS: Dict[str, Factory] = {
 }
 for _cfg in ABLATIONS:
     IMPLS[_cfg.name] = partial(LatticeReplica, cfg=_cfg)
+IMPLS[LWW_GOSSIP.name] = partial(LatticeReplica, cfg=LWW_GOSSIP)
+IMPLS["baseline/quorum"] = QuorumReplica
+BASELINES = ("baseline/quorum", "baseline/lww-gossip")
 
 
 

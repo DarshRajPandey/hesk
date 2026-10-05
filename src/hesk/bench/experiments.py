@@ -4,7 +4,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, replace
 from typing import Dict, List, Sequence, Tuple
 
-from hesk.bench.impls import BEST_LEGACY, LATTICE, LEGACY
+from hesk.bench.impls import BASELINES, BEST_LEGACY, LATTICE, LEGACY
 from hesk.sim.scenario import Params
 
 BASE = Params(claimants=3)  # 12 nodes, 3 partition groups, one claimant per group
@@ -73,11 +73,29 @@ def build(exp: str) -> List[Cell]:
             p = replace(MAIN, n_counter=0, n_res=0, n_contest=6, handoff_gap=gap, chain_restart=restart,
                         t_connected=max(20.0, 6 + 3 * gap + 6))
             out.append(_cell(exp, {"gap": gap, "restart": restart}, p, impls))
+    elif exp == "E12_baselines":  # head-to-head against two conventional designs
+        impls = ("hesk-l",) + BASELINES + ("legacy/reconcile/direct", "legacy/always/relay")
+        for split, skew, gap in (("even", 0.1, 2.0), ("majority", 0.1, 2.0), ("even", 1.0, 1.0), ("majority", 1.0, 1.0)):
+            out.append(_cell(exp, {"split": split, "skew": skew, "gap": gap},
+                             replace(MAIN, split=split, clock_skew=skew, handoff_gap=gap), impls))
+    elif exp == "E13_failure":  # adversarial sweeps: packet loss, crashes, latency, partition length
+        impls = ("hesk-l",) + BASELINES + ("legacy/reconcile/direct",)
+        two = replace(MAIN, n_groups=2, split="majority")
+        for loss in (0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9):
+            out.append(_cell(exp, {"sweep": "loss", "x": loss}, replace(two, loss=loss), impls))
+        for loss in (0.0, 0.1, 0.2, 0.3, 0.4, 0.5):  # control: same loss, no partition (quorum has 5 spare acks)
+            out.append(_cell(exp, {"sweep": "loss_connected", "x": loss}, replace(MAIN, n_groups=1, claimants=1, loss=loss), impls))
+        for c in (0.0, 0.1, 0.25, 0.4, 0.5, 0.6, 0.75):
+            out.append(_cell(exp, {"sweep": "crash", "x": c}, replace(MAIN, n_groups=1, crash_frac=c), impls))
+        for lat in (0.05, 0.15, 0.5, 1.0, 2.0):
+            out.append(_cell(exp, {"sweep": "latency", "x": lat}, replace(two, latency=lat, jitter=0.66 * lat), impls))
+        for tp in (5.0, 15.0, 45.0, 90.0):
+            out.append(_cell(exp, {"sweep": "partition_s", "x": tp}, replace(MAIN, t_part=tp), impls))
     else:
         raise KeyError(exp)
     return out
 
 
-EXPERIMENTS = ("E1_audit", "E2_groups", "E3_spread", "E4_handoff_gap", "E5_skew", "E6_scale", "E7_ablation", "E8_intra_group", "E10_root_cause")
-SEEDS = {"E1_audit": 100, "E7_ablation": 100, "E11_alloc": 200}  # default elsewhere: 60
+EXPERIMENTS = ("E1_audit", "E2_groups", "E3_spread", "E4_handoff_gap", "E5_skew", "E6_scale", "E7_ablation", "E8_intra_group", "E10_root_cause", "E12_baselines", "E13_failure")
+SEEDS = {"E1_audit": 100, "E7_ablation": 100, "E11_alloc": 200, "E12_baselines": 100}  # default elsewhere: 60
 DEFAULT_SEEDS = 60
