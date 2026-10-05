@@ -57,3 +57,58 @@
   300/990     454s elapsed  ~  1044s left
   350/990     515s elapsed  ~   942s left
   400/990     567s elapsed  ~   837s left
+  450/990     608s elapsed  ~   730s left
+  500/990     647s elapsed  ~   634s left
+  550/990     685s elapsed  ~   548s left
+  600/990     724s elapsed  ~   471s left
+concurrent.futures.process._RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "/usr/lib/python3.11/concurrent/futures/process.py", line 261, in _process_worker
+    r = call_item.fn(*call_item.args, **call_item.kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/hesk/src/hesk_sim/cli.py", line 37, in _work
+    m = run_one(scen, algo, seed, agent)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/hesk/src/hesk_sim/runner.py", line 72, in run_one
+    if brain is not None:
+      ^^^^^^^^^^^
+  File "/home/user/hesk/src/hesk_sim/world.py", line 269, in run
+    self.loop.run_until(self.cfg.duration)
+  File "/home/user/hesk/src/hesk_sim/engine.py", line 54, in run_until
+    fn()
+  File "/home/user/hesk/src/hesk_sim/agents/base.py", line 79, in _tick
+    self.send_heartbeat()
+    ^^^^^^^^^^^^^^^^^
+  File "/home/user/hesk/src/hesk_sim/agents/hesk_agent.py", line 332, in on_tick
+    out.append(tid)
+  File "/home/user/hesk/src/hesk_sim/agents/hesk_agent.py", line 373, in _self_check
+    def _award(self, members: tuple, tier: int, mq: float, now: float) -> None:
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/hesk/src/hesk_sim/agents/hesk_agent.py", line 373, in <genexpr>
+    def _award(self, members: tuple, tier: int, mq: float, now: float) -> None:
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/hesk/src/hesk_sim/agents/hesk_agent.py", line 137, in _member_live
+    self.set_own(tid, remote)
+                              
+KeyError: 'n02'
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/user/hesk/src/hesk_sim/cli.py", line 113, in <module>
+    main(sys.argv[1:])
+  File "/home/user/hesk/src/hesk_sim/cli.py", line 109, in main
+    args.fn(args)
+  File "/home/user/hesk/src/hesk_sim/cli.py", line 60, in cmd_run
+    rec = f.result()
+          ^^^^^^^^^^
+  File "/usr/lib/python3.11/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.11/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+KeyError: 'n02'

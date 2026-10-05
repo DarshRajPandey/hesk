@@ -205,10 +205,11 @@ class HeskAgent(AgentBase):
         """Direct heartbeat OR a fresh lease relayed by anyone (indirect evidence)."""
         if not self.suspected(m, now):
             return True
-        return self.f["lease"] and now - v["lease"][m] <= self.cfg.fd_k * self.cfg.hb + 0.25
+        return self.f["lease"] and now - v["lease"].get(m, -1e9) <= self.cfg.fd_k * self.cfg.hb + 0.25
 
     def _lease_fresh(self, v: dict, now: float) -> bool:
-        return (not v["released"]) and all(now - v["lease"][m] <= self.cfg.fd_k * self.cfg.hb + 0.25 for m in v["members"])
+        return (not v["released"]) and all(now - v["lease"].get(m, -1e9) <= self.cfg.fd_k * self.cfg.hb + 0.25
+                                           for m in v["members"])
 
     def _after_merge(self, tid: str, now: float) -> None:
         v = self.own(tid)
@@ -453,6 +454,9 @@ class HeskAgent(AgentBase):
         tid = self.my.task_id
         v = self.own(tid)
         if v is None:
+            return
+        if v["epoch"] != self.my_epoch or tuple(v["members"]) != self.my.members:
+            self.my = None              # my ledger records a different assignment: I no longer own this task
             return
         if self.f["lease"] and not v["released"] and self.id in v["members"]:
             e = self.ledger.entries["own:" + tid]
