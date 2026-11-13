@@ -2,3 +2,7 @@
 # Local docs
 docs/CONSTRUCTION_GUIDE.md
 docs/HESK_SCOPE.md
+
+# Python bytecode
+__pycache__/
+*.pyc
