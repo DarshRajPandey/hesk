@@ -1,0 +1,121 @@
+{
+  "commRange": 0.36,
+  "maxBandwidthKbps": 12000,
+  "baseLatencyMs": 10,
+  "latencyPerUnitMs": 120,
+  "dimensions": {
+    "camera":   { "type": "CONTINUOUS",  "label": "EO camera",       "max": 1 },
+    "lidar":    { "type": "CONTINUOUS",  "label": "LiDAR",           "max": 1 },
+    "thermal":  { "type": "CONTINUOUS",  "label": "Thermal imager",  "max": 1 },
+    "radio":    { "type": "CONTINUOUS",  "label": "Radio link",      "max": 1 },
+    "mobility": { "type": "CONTINUOUS",  "label": "Mobility",        "max": 1 },
+    "compute":  { "type": "CAPACITY",    "label": "Compute",         "max": 10 },
+    "cuda":     { "type": "BOOLEAN",     "label": "GPU runtime",     "max": 1 },
+    "relay":    { "type": "BOOLEAN",     "label": "Mesh relay",      "max": 1 },
+    "runtime":  { "type": "CATEGORICAL", "label": "Inference runtime", "max": 1 }
+  },
+  "archetypes": {
+    "ISR":     { "prefix": "ISR", "label": "Heavy ISR",        "hardware": "Multi-sensor airframe · edge GPU",  "dims": { "camera": 0.9, "lidar": 0.85, "compute": 6, "cuda": true, "mobility": 0.5, "radio": 0.6, "runtime": "tensorrt" } },
+    "COMPUTE": { "prefix": "CMP", "label": "Compute carrier",  "hardware": "Edge compute payload · no sensors", "dims": { "compute": 8, "cuda": true, "radio": 0.65, "mobility": 0.3, "runtime": "tensorrt" } },
+    "SCOUT":   { "prefix": "SCT", "label": "Attritable scout", "hardware": "Light quadrotor · EO camera",       "dims": { "camera": 0.75, "mobility": 0.9, "compute": 1.5, "radio": 0.5, "cuda": false, "runtime": "onnx" } },
+    "LIDAR":   { "prefix": "LDR", "label": "LiDAR mapper",     "hardware": "Light airframe · scanning LiDAR",   "dims": { "lidar": 0.8, "mobility": 0.7, "compute": 1, "radio": 0.5 } },
+    "RELAY":   { "prefix": "RLY", "label": "Comms relay",      "hardware": "High-gain radio · mesh relay",      "dims": { "relay": true, "radio": 0.9, "mobility": 0.6, "compute": 1 } },
+    "THERMAL": { "prefix": "THM", "label": "Thermal scout",    "hardware": "Light quadrotor · LWIR imager",     "dims": { "thermal": 0.85, "camera": 0.45, "mobility": 0.7, "compute": 1, "radio": 0.5 } }
+  },
+  "tasks": [
+    {
+      "taskId": "map_zone", "code": "MAP", "name": "Area mapping", "priorityClass": "CRITICAL", "missionPriority": 0.95, "qMin": 0.4,
+      "tiers": [
+        { "tierLevel": 0, "qualityEstimate": 1.0, "label": "Dense 3D map",
+          "required": { "camera": { "dimType": "CONTINUOUS", "threshold": 0.7 }, "lidar": { "dimType": "CONTINUOUS", "threshold": 0.7 }, "compute": { "dimType": "CAPACITY", "threshold": 5 }, "cuda": { "dimType": "BOOLEAN", "value": true } },
+          "preferred": { "runtime": { "dimType": "CATEGORICAL", "requiredSet": ["tensorrt"] }, "mobility": { "dimType": "CONTINUOUS", "threshold": 0.4 } },
+          "dataFlow": [ { "sourceCapability": "camera", "sinkCapability": "compute", "bandwidthKbps": 3000, "maxLatencyMs": 120 }, { "sourceCapability": "lidar", "sinkCapability": "compute", "bandwidthKbps": 1500, "maxLatencyMs": 120 } ] },
+        { "tierLevel": 1, "qualityEstimate": 0.7, "label": "Visual-only reconstruction",
+          "required": { "camera": { "dimType": "CONTINUOUS", "threshold": 0.6 }, "compute": { "dimType": "CAPACITY", "threshold": 3 } },
+          "preferred": {},
+          "dataFlow": [ { "sourceCapability": "camera", "sinkCapability": "compute", "bandwidthKbps": 2000, "maxLatencyMs": 150 } ] },
+        { "tierLevel": 2, "qualityEstimate": 0.45, "label": "Sparse photo mosaic",
+          "required": { "camera": { "dimType": "CONTINUOUS", "threshold": 0.4 } }, "preferred": {}, "dataFlow": [] }
+      ]
+    },
+    {
+      "taskId": "track_target", "code": "TRK", "name": "Target tracking", "priorityClass": "CRITICAL", "missionPriority": 0.9, "qMin": 0.5,
+      "tiers": [
+        { "tierLevel": 0, "qualityEstimate": 1.0, "label": "Onboard detect + track",
+          "required": { "camera": { "dimType": "CONTINUOUS", "threshold": 0.8 }, "compute": { "dimType": "CAPACITY", "threshold": 4 }, "cuda": { "dimType": "BOOLEAN", "value": true } },
+          "preferred": { "mobility": { "dimType": "CONTINUOUS", "threshold": 0.4 } },
+          "dataFlow": [ { "sourceCapability": "camera", "sinkCapability": "compute", "bandwidthKbps": 2500, "maxLatencyMs": 100 } ] },
+        { "tierLevel": 1, "qualityEstimate": 0.6, "label": "Visual follow, coordinates only",
+          "required": { "camera": { "dimType": "CONTINUOUS", "threshold": 0.6 }, "mobility": { "dimType": "CONTINUOUS", "threshold": 0.6 } }, "preferred": {}, "dataFlow": [] }
+      ]
+    },
+    {
+      "taskId": "comms_relay", "code": "RLY", "name": "Mesh relay", "priorityClass": "IMPORTANT", "missionPriority": 0.7, "qMin": 0.3,
+      "tiers": [
+        { "tierLevel": 0, "qualityEstimate": 1.0, "label": "Dedicated relay",
+          "required": { "relay": { "dimType": "BOOLEAN", "value": true }, "radio": { "dimType": "CONTINUOUS", "threshold": 0.7 } }, "preferred": {}, "dataFlow": [] },
+        { "tierLevel": 1, "qualityEstimate": 0.5, "label": "Opportunistic store-and-forward",
+          "required": { "radio": { "dimType": "CONTINUOUS", "threshold": 0.6 } }, "preferred": {}, "dataFlow": [] }
+      ]
+    },
+    {
+      "taskId": "thermal_sweep", "code": "THM", "name": "Thermal survey", "priorityClass": "IMPORTANT", "missionPriority": 0.55, "qMin": 0.3,
+      "tiers": [
+        { "tierLevel": 0, "qualityEstimate": 1.0, "label": "LWIR sweep",
+          "required": { "thermal": { "dimType": "CONTINUOUS", "threshold": 0.7 } }, "preferred": { "mobility": { "dimType": "CONTINUOUS", "threshold": 0.5 } }, "dataFlow": [] },
+        { "tierLevel": 1, "qualityEstimate": 0.5, "label": "EO-only sweep",
+          "required": { "camera": { "dimType": "CONTINUOUS", "threshold": 0.4 }, "mobility": { "dimType": "CONTINUOUS", "threshold": 0.6 } }, "preferred": {}, "dataFlow": [] }
+      ]
+    },
+    {
+      "taskId": "edge_infer", "code": "INF", "name": "Edge inference", "priorityClass": "IMPORTANT", "missionPriority": 0.5, "qMin": 0.3,
+      "tiers": [
+        { "tierLevel": 0, "qualityEstimate": 1.0, "label": "Full model",
+          "required": { "compute": { "dimType": "CAPACITY", "threshold": 7 }, "cuda": { "dimType": "BOOLEAN", "value": true } }, "preferred": {}, "dataFlow": [] },
+        { "tierLevel": 1, "qualityEstimate": 0.6, "label": "Distilled model, pooled compute",
+          "required": { "compute": { "dimType": "CAPACITY", "threshold": 3 } }, "preferred": {}, "dataFlow": [] }
+      ]
+    },
+    {
+      "taskId": "perimeter", "code": "PAT", "name": "Perimeter patrol", "priorityClass": "OPTIONAL", "missionPriority": 0.3, "qMin": 0.2,
+      "tiers": [
+        { "tierLevel": 0, "qualityEstimate": 1.0, "label": "Camera patrol",
+          "required": { "camera": { "dimType": "CONTINUOUS", "threshold": 0.6 }, "mobility": { "dimType": "CONTINUOUS", "threshold": 0.8 } }, "preferred": {}, "dataFlow": [] },
+        { "tierLevel": 1, "qualityEstimate": 0.5, "label": "Blind waypoint loop",
+          "required": { "mobility": { "dimType": "CONTINUOUS", "threshold": 0.6 } }, "preferred": {}, "dataFlow": [] }
+      ]
+    }
+  ],
+  "presets": {
+    "quintet": {
+      "label": "Quintet · 5 nodes", "tasks": ["map_zone", "track_target", "comms_relay", "thermal_sweep"],
+      "nodes": [
+        { "archetype": "ISR", "x": 0.30, "y": 0.34 }, { "archetype": "COMPUTE", "x": 0.56, "y": 0.30 },
+        { "archetype": "SCOUT", "x": 0.26, "y": 0.62 }, { "archetype": "RELAY", "x": 0.50, "y": 0.54 },
+        { "archetype": "THERMAL", "x": 0.72, "y": 0.60 }
+      ]
+    },
+    "baseline": {
+      "label": "Baseline · 12 nodes", "tasks": ["map_zone", "track_target", "comms_relay", "thermal_sweep", "edge_infer", "perimeter"],
+      "nodes": [
+        { "archetype": "ISR", "x": 0.22, "y": 0.30 }, { "archetype": "ISR", "x": 0.74, "y": 0.62 },
+        { "archetype": "COMPUTE", "x": 0.30, "y": 0.56 }, { "archetype": "COMPUTE", "x": 0.68, "y": 0.34 },
+        { "archetype": "SCOUT", "x": 0.12, "y": 0.52 }, { "archetype": "SCOUT", "x": 0.40, "y": 0.20 }, { "archetype": "SCOUT", "x": 0.86, "y": 0.40 },
+        { "archetype": "LIDAR", "x": 0.62, "y": 0.50 },
+        { "archetype": "RELAY", "x": 0.45, "y": 0.42 }, { "archetype": "RELAY", "x": 0.54, "y": 0.66 },
+        { "archetype": "THERMAL", "x": 0.26, "y": 0.80 }, { "archetype": "THERMAL", "x": 0.86, "y": 0.80 }
+      ]
+    },
+    "dense": {
+      "label": "Dense · 18 nodes", "tasks": ["map_zone", "track_target", "comms_relay", "thermal_sweep", "edge_infer", "perimeter"],
+      "nodes": [
+        { "archetype": "ISR", "x": 0.20, "y": 0.26 }, { "archetype": "ISR", "x": 0.76, "y": 0.66 }, { "archetype": "ISR", "x": 0.50, "y": 0.86 },
+        { "archetype": "COMPUTE", "x": 0.30, "y": 0.52 }, { "archetype": "COMPUTE", "x": 0.70, "y": 0.34 }, { "archetype": "COMPUTE", "x": 0.52, "y": 0.14 },
+        { "archetype": "SCOUT", "x": 0.10, "y": 0.50 }, { "archetype": "SCOUT", "x": 0.38, "y": 0.22 }, { "archetype": "SCOUT", "x": 0.88, "y": 0.42 }, { "archetype": "SCOUT", "x": 0.34, "y": 0.84 },
+        { "archetype": "LIDAR", "x": 0.60, "y": 0.72 }, { "archetype": "LIDAR", "x": 0.16, "y": 0.72 },
+        { "archetype": "RELAY", "x": 0.44, "y": 0.42 }, { "archetype": "RELAY", "x": 0.57, "y": 0.52 }, { "archetype": "RELAY", "x": 0.86, "y": 0.20 },
+        { "archetype": "THERMAL", "x": 0.24, "y": 0.90 }, { "archetype": "THERMAL", "x": 0.88, "y": 0.84 }, { "archetype": "THERMAL", "x": 0.70, "y": 0.10 }
+      ]
+    }
+  }
+}

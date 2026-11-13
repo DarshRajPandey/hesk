@@ -1,0 +1,129 @@
+@import "tailwindcss";
+@import "@fontsource/ibm-plex-sans/400.css";
+@import "@fontsource/ibm-plex-sans/500.css";
+@import "@fontsource/ibm-plex-sans/600.css";
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/500.css";
+
+@theme {
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --color-bg-0: #05070a;
+  --color-bg-1: #0b0f14;
+  --color-bg-2: #10161d;
+  --color-bg-3: #18212b;
+  --color-line: #1a242f;
+  --color-line-2: #2a3745;
+  --color-ink: #dde6ee;
+  --color-ink-2: #9dabba;
+  --color-ink-3: #74859a;
+
+  --color-accent: #56c7e8;
+  --color-violet: #a394f7;
+  --color-blue: #6b9bf2;
+  --color-ok: #45c796;
+  --color-warn: #e0a83c;
+  --color-crit: #ee5f5b;
+
+  /* Categorical data colours — validated for the dark surface (dataviz palette check). */
+  --color-s1: #1fa2c4;
+  --color-s2: #9179ee;
+  --color-s3: #d95f9c;
+  --color-s4: #4c84e6;
+  --color-s5: #c98500;
+}
+
+@layer base {
+:root {
+  color-scheme: dark;
+}
+html, body, #root {
+  height: 100%;
+}
+body {
+  margin: 0;
+  background: var(--color-bg-0);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+::selection {
+  background: color-mix(in oklab, var(--color-accent) 35%, transparent);
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line-2) transparent;
+}
+:focus-visible {
+  outline: 1px solid var(--color-accent);
+  outline-offset: 1px;
+}
+button, select, input {
+  font: inherit;
+  color: inherit;
+}
+button:not(:disabled), select:not(:disabled) {
+  cursor: pointer;
+}
+}
+
+@layer components {
+  .label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--color-ink-3);
+  }
+  .num {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+  .panel {
+    background: var(--color-bg-1);
+    border: 1px solid var(--color-line);
+    border-radius: 3px;
+  }
+  .field {
+    height: 26px;
+    padding: 0 8px;
+    background: var(--color-bg-2);
+    border: 1px solid var(--color-line-2);
+    border-radius: 2px;
+    font-size: 12px;
+  }
+  .field:hover {
+    border-color: var(--color-ink-3);
+  }
+  .tech-grid {
+    background-image:
+      linear-gradient(var(--color-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--color-line) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+}
+
+.flow-line {
+  stroke-dasharray: 5 6;
+  animation: flow 1.1s linear infinite;
+}
+@keyframes flow {
+  to {
+    stroke-dashoffset: -22;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .flow-line {
+    animation: none;
+  }
+}
+
+.recharts-surface:focus,
+.recharts-wrapper:focus,
+.recharts-wrapper *:focus {
+  outline: none;
+}

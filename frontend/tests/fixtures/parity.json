@@ -1,0 +1,2540 @@
+{
+ "allocation": [
+  {
+   "bids": {
+    "ISR-1": 0.12499999999999996,
+    "ISR-2": 0.1565463917525773
+   },
+   "runnerUp": "ISR-2",
+   "task": "map_zone",
+   "tier": 0,
+   "winner": "ISR-1"
+  },
+  {
+   "bids": {
+    "ISR-1": 2.8833333333333333,
+    "ISR-2": 2.914879725085911
+   },
+   "runnerUp": "ISR-2",
+   "task": "map_zone",
+   "tier": 1,
+   "winner": "ISR-1"
+  },
+  {
+   "bids": {
+    "ISR-1": 2.8833333333333333,
+    "ISR-2": 2.914879725085911,
+    "SCT-1": 0.17681818181818182,
+    "SCT-2": 0.20882352941176474,
+    "SCT-3": 0.2409756097560976,
+    "THM-1": 2.0380952380952384,
+    "THM-2": 2.0712935323383084
+   },
+   "runnerUp": "SCT-2",
+   "task": "map_zone",
+   "tier": 2,
+   "winner": "SCT-1"
+  },
+  {
+   "bids": {
+    "ISR-1": 1.7,
+    "ISR-2": 1.7315463917525773
+   },
+   "runnerUp": "ISR-2",
+   "task": "track_target",
+   "tier": 0,
+   "winner": "ISR-1"
+  },
+  {
+   "bids": {
+    "SCT-1": 0.17681818181818182,
+    "SCT-2": 0.20882352941176474,
+    "SCT-3": 0.2409756097560976
+   },
+   "runnerUp": "SCT-2",
+   "task": "track_target",
+   "tier": 1,
+   "winner": "SCT-1"
+  },
+  {
+   "bids": {
+    "RLY-1": 0.3057894736842105,
+    "RLY-2": 0.3384931506849315
+   },
+   "runnerUp": "RLY-2",
+   "task": "comms_relay",
+   "tier": 0,
+   "winner": "RLY-1"
+  },
+  {
+   "bids": {
+    "CMP-1": 1.4465248226950356,
+    "CMP-2": 1.4782783882783883,
+    "ISR-1": 3.7166666666666663,
+    "ISR-2": 3.748213058419244,
+    "RLY-1": 1.9724561403508774,
+    "RLY-2": 2.0051598173515983
+   },
+   "runnerUp": "CMP-2",
+   "task": "comms_relay",
+   "tier": 1,
+   "winner": "CMP-1"
+  },
+  {
+   "bids": {
+    "THM-1": 1.3247619047619048,
+    "THM-2": 1.357960199004975
+   },
+   "runnerUp": "THM-2",
+   "task": "thermal_sweep",
+   "tier": 0,
+   "winner": "THM-1"
+  },
+  {
+   "bids": {
+    "SCT-1": 0.17681818181818182,
+    "SCT-2": 0.20882352941176474,
+    "SCT-3": 0.2409756097560976,
+    "THM-1": 2.0380952380952384,
+    "THM-2": 2.0712935323383084
+   },
+   "runnerUp": "SCT-2",
+   "task": "thermal_sweep",
+   "tier": 1,
+   "winner": "SCT-1"
+  },
+  {
+   "bids": {
+    "CMP-1": 0.11319148936170219,
+    "CMP-2": 0.1449450549450549
+   },
+   "runnerUp": "CMP-2",
+   "task": "edge_infer",
+   "tier": 0,
+   "winner": "CMP-1"
+  },
+  {
+   "bids": {
+    "CMP-1": 1.4465248226950356,
+    "CMP-2": 1.4782783882783883,
+    "ISR-1": 3.7166666666666663,
+    "ISR-2": 3.748213058419244
+   },
+   "runnerUp": "CMP-2",
+   "task": "edge_infer",
+   "tier": 1,
+   "winner": "CMP-1"
+  },
+  {
+   "bids": {
+    "SCT-1": 0.17681818181818182,
+    "SCT-2": 0.20882352941176474,
+    "SCT-3": 0.2409756097560976
+   },
+   "runnerUp": "SCT-2",
+   "task": "perimeter",
+   "tier": 0,
+   "winner": "SCT-1"
+  },
+  {
+   "bids": {
+    "LDR-1": 1.7732911392405062,
+    "RLY-1": 1.9724561403508774,
+    "RLY-2": 2.0051598173515983,
+    "SCT-1": 1.010151515151515,
+    "SCT-2": 1.042156862745098,
+    "SCT-3": 1.0743089430894308,
+    "THM-1": 2.8714285714285714,
+    "THM-2": 2.904626865671642
+   },
+   "runnerUp": "SCT-2",
+   "task": "perimeter",
+   "tier": 1,
+   "winner": "SCT-1"
+  }
+ ],
+ "coalition": [
+  {
+   "candidates": "all",
+   "result": {
+    "cost": 0.9,
+    "members": [
+     "ISR-1"
+    ],
+    "roles": {
+     "camera": "ISR-1",
+     "compute": "ISR-1",
+     "cuda": "ISR-1",
+     "lidar": "ISR-1"
+    }
+   },
+   "success": true,
+   "task": "map_zone",
+   "tier": 0
+  },
+  {
+   "candidates": "no_isr",
+   "result": null,
+   "success": false,
+   "task": "map_zone",
+   "tier": 0
+  },
+  {
+   "candidates": "all",
+   "result": {
+    "cost": 0.9,
+    "members": [
+     "ISR-1"
+    ],
+    "roles": {
+     "camera": "ISR-1",
+     "compute": "ISR-1"
+    }
+   },
+   "success": true,
+   "task": "map_zone",
+   "tier": 1
+  },
+  {
+   "candidates": "no_isr",
+   "result": {
+    "cost": 21.650075323484185,
+    "members": [
+     "SCT-1",
+     "CMP-1"
+    ],
+    "roles": {
+     "camera": "SCT-1",
+     "compute": "CMP-1"
+    }
+   },
+   "success": true,
+   "task": "map_zone",
+   "tier": 1
+  },
+  {
+   "candidates": "all",
+   "result": {
+    "cost": 0.9,
+    "members": [
+     "ISR-1"
+    ],
+    "roles": {
+     "camera": "ISR-1"
+    }
+   },
+   "success": true,
+   "task": "map_zone",
+   "tier": 2
+  },
+  {
+   "candidates": "no_isr",
+   "result": {
+    "cost": 0.9,
+    "members": [
+     "SCT-1"
+    ],
+    "roles": {
+     "camera": "SCT-1"
+    }
+   },
+   "success": true,
+   "task": "map_zone",
+   "tier": 2
+  },
+  {
+   "candidates": "all",
+   "result": {
+    "cost": 0.9,
+    "members": [
+     "ISR-1"
+    ],
+    "roles": {
+     "camera": "ISR-1",
+     "compute": "ISR-1",
+     "cuda": "ISR-1"
+    }
+   },
+   "success": true,
+   "task": "track_target",
+   "tier": 0
+  },
+  {
+   "candidates": "no_isr",
+   "result": null,
+   "success": false,
+   "task": "track_target",
+   "tier": 0
+  },
+  {
+   "candidates": "all",
+   "result": {
+    "cost": 0.9,
+    "members": [
+     "SCT-1"
+    ],
+    "roles": {
+     "camera": "SCT-1",
+     "mobility": "SCT-1"
+    }
+   },
+   "success": true,
+   "task": "track_target",
+   "tier": 1
+  },
+  {
+   "candidates": "no_isr",
+   "result": {
+    "cost": 0.9,
+    "members": [
+     "SCT-1"
+    ],
+    "roles": {
+     "camera": "SCT-1",
+     "mobility": "SCT-1"
+    }
+   },
+   "success": true,
+   "task": "track_target",
+   "tier": 1
+  },
+  {
+   "candidates": "all",
+   "result": {
+    "cost": 0.9,
+    "members": [
+     "RLY-1"
+    ],
+    "roles": {
+     "radio": "RLY-1",
+     "relay": "RLY-1"
+    }
+   },
+   "success": true,
+   "task": "comms_relay",
+   "tier": 0
+  },
+  {
+   "candidates": "no_isr",
+   "result": {
+    "cost": 0.9,
+    "members": [
+     "RLY-1"
+    ],
+    "roles": {
+     "radio": "RLY-1",
+     "relay": "RLY-1"
+    }
+   },
+   "success": true,
+   "task": "comms_relay",
+   "tier": 0
+  },
+  {
+   "candidates": "all",
+   "result": {
+    "cost": 0.9,
+    "members": [
+     "ISR-1"
+    ],
+    "roles": {
+     "radio": "ISR-1"
+    }
+   },
+   "success": true,
+   "task": "comms_relay",
+   "tier": 1
+  },
+  {
+   "candidates": "no_isr",
+   "result": {
+    "cost": 0.9,
+    "members": [
+     "CMP-1"
+    ],
+    "roles": {
+     "radio": "CMP-1"
+    }
+   },
+   "success": true,
+   "task": "comms_relay",
+   "tier": 1
+  },
+  {
+   "candidates": "all",
+   "result": {
+    "cost": 0.9,
+    "members": [
+     "THM-1"
+    ],
+    "roles": {
+     "thermal": "THM-1"
+    }
+   },
+   "success": true,
+   "task": "thermal_sweep",
+   "tier": 0
+  },
+  {
+   "candidates": "no_isr",
+   "result": {
+    "cost": 0.9,
+    "members": [
+     "THM-1"
+    ],
+    "roles": {
+     "thermal": "THM-1"
+    }
+   },
+   "success": true,
+   "task": "thermal_sweep",
+   "tier": 0
+  },
+  {
+   "candidates": "all",
+   "result": {
+    "cost": 0.9,
+    "members": [
+     "SCT-1"
+    ],
+    "roles": {
+     "camera": "SCT-1",
+     "mobility": "SCT-1"
+    }
+   },
+   "success": true,
+   "task": "thermal_sweep",
+   "tier": 1
+  },
+  {
+   "candidates": "no_isr",
+   "result": {
+    "cost": 0.9,
+    "members": [
+     "SCT-1"
+    ],
+    "roles": {
+     "camera": "SCT-1",
+     "mobility": "SCT-1"
+    }
+   },
+   "success": true,
+   "task": "thermal_sweep",
+   "tier": 1
+  },
+  {
+   "candidates": "all",
+   "result": {
+    "cost": 0.9,
+    "members": [
+     "CMP-1"
+    ],
+    "roles": {
+     "compute": "CMP-1",
+     "cuda": "CMP-1"
+    }
+   },
+   "success": true,
+   "task": "edge_infer",
+   "tier": 0
+  },
+  {
+   "candidates": "no_isr",
+   "result": {
+    "cost": 0.9,
+    "members": [
+     "CMP-1"
+    ],
+    "roles": {
+     "compute": "CMP-1",
+     "cuda": "CMP-1"
+    }
+   },
+   "success": true,
+   "task": "edge_infer",
+   "tier": 0
+  },
+  {
+   "candidates": "all",
+   "result": {
+    "cost": 0.9,
+    "members": [
+     "ISR-1"
+    ],
+    "roles": {
+     "compute": "ISR-1"
+    }
+   },
+   "success": true,
+   "task": "edge_infer",
+   "tier": 1
+  },
+  {
+   "candidates": "no_isr",
+   "result": {
+    "cost": 0.9,
+    "members": [
+     "CMP-1"
+    ],
+    "roles": {
+     "compute": "CMP-1"
+    }
+   },
+   "success": true,
+   "task": "edge_infer",
+   "tier": 1
+  },
+  {
+   "candidates": "all",
+   "result": {
+    "cost": 0.9,
+    "members": [
+     "SCT-1"
+    ],
+    "roles": {
+     "camera": "SCT-1",
+     "mobility": "SCT-1"
+    }
+   },
+   "success": true,
+   "task": "perimeter",
+   "tier": 0
+  },
+  {
+   "candidates": "no_isr",
+   "result": {
+    "cost": 0.9,
+    "members": [
+     "SCT-1"
+    ],
+    "roles": {
+     "camera": "SCT-1",
+     "mobility": "SCT-1"
+    }
+   },
+   "success": true,
+   "task": "perimeter",
+   "tier": 0
+  },
+  {
+   "candidates": "all",
+   "result": {
+    "cost": 0.9,
+    "members": [
+     "SCT-1"
+    ],
+    "roles": {
+     "mobility": "SCT-1"
+    }
+   },
+   "success": true,
+   "task": "perimeter",
+   "tier": 1
+  },
+  {
+   "candidates": "no_isr",
+   "result": {
+    "cost": 0.9,
+    "members": [
+     "SCT-1"
+    ],
+    "roles": {
+     "mobility": "SCT-1"
+    }
+   },
+   "success": true,
+   "task": "perimeter",
+   "tier": 1
+  }
+ ],
+ "degradation": [
+  {
+   "abandoned": [],
+   "assignments": {
+    "edge_infer": "CMP-2"
+   },
+   "known": [
+    "CMP-1",
+    "CMP-2",
+    "SCT-2",
+    "SCT-3",
+    "LDR-1",
+    "RLY-2",
+    "THM-2"
+   ],
+   "lost": "CMP-1",
+   "tierChanges": {
+    "edge_infer": [
+     0,
+     0
+    ]
+   },
+   "trace": [
+    [
+     "edge_infer",
+     "REASSIGN"
+    ]
+   ],
+   "utilityAfter": 3.8999999999999995,
+   "utilityBefore": 3.9
+  },
+  {
+   "abandoned": [],
+   "assignments": {
+    "map_zone": {
+     "cost": 47.39223191683544,
+     "members": [
+      "CMP-2",
+      "LDR-1",
+      "SCT-3"
+     ],
+     "roles": {
+      "camera": "SCT-3",
+      "compute": "CMP-2",
+      "cuda": "CMP-2",
+      "lidar": "LDR-1"
+     }
+    }
+   },
+   "known": [
+    "ISR-1",
+    "CMP-2",
+    "SCT-2",
+    "SCT-3",
+    "LDR-1",
+    "RLY-2",
+    "THM-2"
+   ],
+   "lost": "ISR-1",
+   "tierChanges": {
+    "map_zone": [
+     0,
+     0
+    ]
+   },
+   "trace": [
+    [
+     "map_zone",
+     "DEGRADE"
+    ]
+   ],
+   "utilityAfter": 3.8999999999999995,
+   "utilityBefore": 3.9
+  },
+  {
+   "abandoned": [],
+   "assignments": {
+    "track_target": "SCT-2"
+   },
+   "known": [
+    "ISR-2",
+    "CMP-2",
+    "SCT-2",
+    "SCT-3",
+    "LDR-1",
+    "RLY-2",
+    "THM-2"
+   ],
+   "lost": "ISR-2",
+   "tierChanges": {
+    "track_target": [
+     0,
+     1
+    ]
+   },
+   "trace": [
+    [
+     "track_target",
+     "REASSIGN"
+    ]
+   ],
+   "utilityAfter": 3.54,
+   "utilityBefore": 3.9
+  },
+  {
+   "abandoned": [],
+   "assignments": {
+    "comms_relay": "RLY-2"
+   },
+   "known": [
+    "CMP-2",
+    "SCT-2",
+    "SCT-3",
+    "LDR-1",
+    "RLY-1",
+    "RLY-2",
+    "THM-2"
+   ],
+   "lost": "RLY-1",
+   "tierChanges": {
+    "comms_relay": [
+     0,
+     0
+    ]
+   },
+   "trace": [
+    [
+     "comms_relay",
+     "REASSIGN"
+    ]
+   ],
+   "utilityAfter": 3.8999999999999995,
+   "utilityBefore": 3.9
+  },
+  {
+   "abandoned": [],
+   "assignments": {
+    "perimeter": "SCT-2"
+   },
+   "known": [
+    "CMP-2",
+    "SCT-1",
+    "SCT-2",
+    "SCT-3",
+    "LDR-1",
+    "RLY-2",
+    "THM-2"
+   ],
+   "lost": "SCT-1",
+   "tierChanges": {
+    "perimeter": [
+     0,
+     0
+    ]
+   },
+   "trace": [
+    [
+     "perimeter",
+     "REASSIGN"
+    ]
+   ],
+   "utilityAfter": 3.8999999999999995,
+   "utilityBefore": 3.9
+  },
+  {
+   "abandoned": [],
+   "assignments": {
+    "thermal_sweep": "THM-2"
+   },
+   "known": [
+    "CMP-2",
+    "SCT-2",
+    "SCT-3",
+    "LDR-1",
+    "RLY-2",
+    "THM-1",
+    "THM-2"
+   ],
+   "lost": "THM-1",
+   "tierChanges": {
+    "thermal_sweep": [
+     0,
+     0
+    ]
+   },
+   "trace": [
+    [
+     "thermal_sweep",
+     "REASSIGN"
+    ]
+   ],
+   "utilityAfter": 3.8999999999999995,
+   "utilityBefore": 3.9
+  }
+ ],
+ "initial": {
+  "comms_relay": "RLY-1",
+  "edge_infer": "CMP-1",
+  "map_zone": "ISR-1",
+  "perimeter": "SCT-1",
+  "thermal_sweep": "THM-1",
+  "track_target": "ISR-2"
+ },
+ "match": [
+  {
+   "eligible": true,
+   "node": "ISR-1",
+   "quality": 0.925,
+   "task": "map_zone",
+   "tier": 0,
+   "unmet": []
+  },
+  {
+   "eligible": true,
+   "node": "ISR-2",
+   "quality": 0.925,
+   "task": "map_zone",
+   "tier": 0,
+   "unmet": []
+  },
+  {
+   "eligible": false,
+   "node": "CMP-1",
+   "quality": 0.0,
+   "task": "map_zone",
+   "tier": 0,
+   "unmet": [
+    "camera",
+    "lidar"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "CMP-2",
+   "quality": 0.0,
+   "task": "map_zone",
+   "tier": 0,
+   "unmet": [
+    "camera",
+    "lidar"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "SCT-1",
+   "quality": 0.0,
+   "task": "map_zone",
+   "tier": 0,
+   "unmet": [
+    "compute",
+    "cuda",
+    "lidar"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "SCT-2",
+   "quality": 0.0,
+   "task": "map_zone",
+   "tier": 0,
+   "unmet": [
+    "compute",
+    "cuda",
+    "lidar"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "SCT-3",
+   "quality": 0.0,
+   "task": "map_zone",
+   "tier": 0,
+   "unmet": [
+    "compute",
+    "cuda",
+    "lidar"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "LDR-1",
+   "quality": 0.0,
+   "task": "map_zone",
+   "tier": 0,
+   "unmet": [
+    "camera",
+    "compute",
+    "cuda"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "RLY-1",
+   "quality": 0.0,
+   "task": "map_zone",
+   "tier": 0,
+   "unmet": [
+    "camera",
+    "compute",
+    "cuda",
+    "lidar"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "RLY-2",
+   "quality": 0.0,
+   "task": "map_zone",
+   "tier": 0,
+   "unmet": [
+    "camera",
+    "compute",
+    "cuda",
+    "lidar"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "THM-1",
+   "quality": 0.0,
+   "task": "map_zone",
+   "tier": 0,
+   "unmet": [
+    "camera",
+    "compute",
+    "cuda",
+    "lidar"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "THM-2",
+   "quality": 0.0,
+   "task": "map_zone",
+   "tier": 0,
+   "unmet": [
+    "camera",
+    "compute",
+    "cuda",
+    "lidar"
+   ]
+  },
+  {
+   "eligible": true,
+   "node": "ISR-1",
+   "quality": 1.0,
+   "task": "map_zone",
+   "tier": 1,
+   "unmet": []
+  },
+  {
+   "eligible": true,
+   "node": "ISR-2",
+   "quality": 1.0,
+   "task": "map_zone",
+   "tier": 1,
+   "unmet": []
+  },
+  {
+   "eligible": false,
+   "node": "CMP-1",
+   "quality": 0.0,
+   "task": "map_zone",
+   "tier": 1,
+   "unmet": [
+    "camera"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "CMP-2",
+   "quality": 0.0,
+   "task": "map_zone",
+   "tier": 1,
+   "unmet": [
+    "camera"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "SCT-1",
+   "quality": 0.0,
+   "task": "map_zone",
+   "tier": 1,
+   "unmet": [
+    "compute"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "SCT-2",
+   "quality": 0.0,
+   "task": "map_zone",
+   "tier": 1,
+   "unmet": [
+    "compute"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "SCT-3",
+   "quality": 0.0,
+   "task": "map_zone",
+   "tier": 1,
+   "unmet": [
+    "compute"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "LDR-1",
+   "quality": 0.0,
+   "task": "map_zone",
+   "tier": 1,
+   "unmet": [
+    "camera",
+    "compute"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "RLY-1",
+   "quality": 0.0,
+   "task": "map_zone",
+   "tier": 1,
+   "unmet": [
+    "camera",
+    "compute"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "RLY-2",
+   "quality": 0.0,
+   "task": "map_zone",
+   "tier": 1,
+   "unmet": [
+    "camera",
+    "compute"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "THM-1",
+   "quality": 0.0,
+   "task": "map_zone",
+   "tier": 1,
+   "unmet": [
+    "camera",
+    "compute"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "THM-2",
+   "quality": 0.0,
+   "task": "map_zone",
+   "tier": 1,
+   "unmet": [
+    "camera",
+    "compute"
+   ]
+  },
+  {
+   "eligible": true,
+   "node": "ISR-1",
+   "quality": 1.0,
+   "task": "map_zone",
+   "tier": 2,
+   "unmet": []
+  },
+  {
+   "eligible": true,
+   "node": "ISR-2",
+   "quality": 1.0,
+   "task": "map_zone",
+   "tier": 2,
+   "unmet": []
+  },
+  {
+   "eligible": false,
+   "node": "CMP-1",
+   "quality": 0.0,
+   "task": "map_zone",
+   "tier": 2,
+   "unmet": [
+    "camera"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "CMP-2",
+   "quality": 0.0,
+   "task": "map_zone",
+   "tier": 2,
+   "unmet": [
+    "camera"
+   ]
+  },
+  {
+   "eligible": true,
+   "node": "SCT-1",
+   "quality": 1.0,
+   "task": "map_zone",
+   "tier": 2,
+   "unmet": []
+  },
+  {
+   "eligible": true,
+   "node": "SCT-2",
+   "quality": 1.0,
+   "task": "map_zone",
+   "tier": 2,
+   "unmet": []
+  },
+  {
+   "eligible": true,
+   "node": "SCT-3",
+   "quality": 1.0,
+   "task": "map_zone",
+   "tier": 2,
+   "unmet": []
+  },
+  {
+   "eligible": false,
+   "node": "LDR-1",
+   "quality": 0.0,
+   "task": "map_zone",
+   "tier": 2,
+   "unmet": [
+    "camera"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "RLY-1",
+   "quality": 0.0,
+   "task": "map_zone",
+   "tier": 2,
+   "unmet": [
+    "camera"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "RLY-2",
+   "quality": 0.0,
+   "task": "map_zone",
+   "tier": 2,
+   "unmet": [
+    "camera"
+   ]
+  },
+  {
+   "eligible": true,
+   "node": "THM-1",
+   "quality": 1.0,
+   "task": "map_zone",
+   "tier": 2,
+   "unmet": []
+  },
+  {
+   "eligible": true,
+   "node": "THM-2",
+   "quality": 1.0,
+   "task": "map_zone",
+   "tier": 2,
+   "unmet": []
+  },
+  {
+   "eligible": true,
+   "node": "ISR-1",
+   "quality": 0.8500000000000001,
+   "task": "track_target",
+   "tier": 0,
+   "unmet": []
+  },
+  {
+   "eligible": true,
+   "node": "ISR-2",
+   "quality": 0.8500000000000001,
+   "task": "track_target",
+   "tier": 0,
+   "unmet": []
+  },
+  {
+   "eligible": false,
+   "node": "CMP-1",
+   "quality": 0.0,
+   "task": "track_target",
+   "tier": 0,
+   "unmet": [
+    "camera"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "CMP-2",
+   "quality": 0.0,
+   "task": "track_target",
+   "tier": 0,
+   "unmet": [
+    "camera"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "SCT-1",
+   "quality": 0.0,
+   "task": "track_target",
+   "tier": 0,
+   "unmet": [
+    "camera",
+    "compute",
+    "cuda"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "SCT-2",
+   "quality": 0.0,
+   "task": "track_target",
+   "tier": 0,
+   "unmet": [
+    "camera",
+    "compute",
+    "cuda"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "SCT-3",
+   "quality": 0.0,
+   "task": "track_target",
+   "tier": 0,
+   "unmet": [
+    "camera",
+    "compute",
+    "cuda"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "LDR-1",
+   "quality": 0.0,
+   "task": "track_target",
+   "tier": 0,
+   "unmet": [
+    "camera",
+    "compute",
+    "cuda"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "RLY-1",
+   "quality": 0.0,
+   "task": "track_target",
+   "tier": 0,
+   "unmet": [
+    "camera",
+    "compute",
+    "cuda"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "RLY-2",
+   "quality": 0.0,
+   "task": "track_target",
+   "tier": 0,
+   "unmet": [
+    "camera",
+    "compute",
+    "cuda"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "THM-1",
+   "quality": 0.0,
+   "task": "track_target",
+   "tier": 0,
+   "unmet": [
+    "camera",
+    "compute",
+    "cuda"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "THM-2",
+   "quality": 0.0,
+   "task": "track_target",
+   "tier": 0,
+   "unmet": [
+    "camera",
+    "compute",
+    "cuda"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "ISR-1",
+   "quality": 0.0,
+   "task": "track_target",
+   "tier": 1,
+   "unmet": [
+    "mobility"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "ISR-2",
+   "quality": 0.0,
+   "task": "track_target",
+   "tier": 1,
+   "unmet": [
+    "mobility"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "CMP-1",
+   "quality": 0.0,
+   "task": "track_target",
+   "tier": 1,
+   "unmet": [
+    "camera",
+    "mobility"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "CMP-2",
+   "quality": 0.0,
+   "task": "track_target",
+   "tier": 1,
+   "unmet": [
+    "camera",
+    "mobility"
+   ]
+  },
+  {
+   "eligible": true,
+   "node": "SCT-1",
+   "quality": 1.0,
+   "task": "track_target",
+   "tier": 1,
+   "unmet": []
+  },
+  {
+   "eligible": true,
+   "node": "SCT-2",
+   "quality": 1.0,
+   "task": "track_target",
+   "tier": 1,
+   "unmet": []
+  },
+  {
+   "eligible": true,
+   "node": "SCT-3",
+   "quality": 1.0,
+   "task": "track_target",
+   "tier": 1,
+   "unmet": []
+  },
+  {
+   "eligible": false,
+   "node": "LDR-1",
+   "quality": 0.0,
+   "task": "track_target",
+   "tier": 1,
+   "unmet": [
+    "camera"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "RLY-1",
+   "quality": 0.0,
+   "task": "track_target",
+   "tier": 1,
+   "unmet": [
+    "camera"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "RLY-2",
+   "quality": 0.0,
+   "task": "track_target",
+   "tier": 1,
+   "unmet": [
+    "camera"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "THM-1",
+   "quality": 0.0,
+   "task": "track_target",
+   "tier": 1,
+   "unmet": [
+    "camera"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "THM-2",
+   "quality": 0.0,
+   "task": "track_target",
+   "tier": 1,
+   "unmet": [
+    "camera"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "ISR-1",
+   "quality": 0.0,
+   "task": "comms_relay",
+   "tier": 0,
+   "unmet": [
+    "radio",
+    "relay"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "ISR-2",
+   "quality": 0.0,
+   "task": "comms_relay",
+   "tier": 0,
+   "unmet": [
+    "radio",
+    "relay"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "CMP-1",
+   "quality": 0.0,
+   "task": "comms_relay",
+   "tier": 0,
+   "unmet": [
+    "radio",
+    "relay"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "CMP-2",
+   "quality": 0.0,
+   "task": "comms_relay",
+   "tier": 0,
+   "unmet": [
+    "radio",
+    "relay"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "SCT-1",
+   "quality": 0.0,
+   "task": "comms_relay",
+   "tier": 0,
+   "unmet": [
+    "radio",
+    "relay"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "SCT-2",
+   "quality": 0.0,
+   "task": "comms_relay",
+   "tier": 0,
+   "unmet": [
+    "radio",
+    "relay"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "SCT-3",
+   "quality": 0.0,
+   "task": "comms_relay",
+   "tier": 0,
+   "unmet": [
+    "radio",
+    "relay"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "LDR-1",
+   "quality": 0.0,
+   "task": "comms_relay",
+   "tier": 0,
+   "unmet": [
+    "radio",
+    "relay"
+   ]
+  },
+  {
+   "eligible": true,
+   "node": "RLY-1",
+   "quality": 1.0,
+   "task": "comms_relay",
+   "tier": 0,
+   "unmet": []
+  },
+  {
+   "eligible": true,
+   "node": "RLY-2",
+   "quality": 1.0,
+   "task": "comms_relay",
+   "tier": 0,
+   "unmet": []
+  },
+  {
+   "eligible": false,
+   "node": "THM-1",
+   "quality": 0.0,
+   "task": "comms_relay",
+   "tier": 0,
+   "unmet": [
+    "radio",
+    "relay"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "THM-2",
+   "quality": 0.0,
+   "task": "comms_relay",
+   "tier": 0,
+   "unmet": [
+    "radio",
+    "relay"
+   ]
+  },
+  {
+   "eligible": true,
+   "node": "ISR-1",
+   "quality": 1.0,
+   "task": "comms_relay",
+   "tier": 1,
+   "unmet": []
+  },
+  {
+   "eligible": true,
+   "node": "ISR-2",
+   "quality": 1.0,
+   "task": "comms_relay",
+   "tier": 1,
+   "unmet": []
+  },
+  {
+   "eligible": true,
+   "node": "CMP-1",
+   "quality": 1.0,
+   "task": "comms_relay",
+   "tier": 1,
+   "unmet": []
+  },
+  {
+   "eligible": true,
+   "node": "CMP-2",
+   "quality": 1.0,
+   "task": "comms_relay",
+   "tier": 1,
+   "unmet": []
+  },
+  {
+   "eligible": false,
+   "node": "SCT-1",
+   "quality": 0.0,
+   "task": "comms_relay",
+   "tier": 1,
+   "unmet": [
+    "radio"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "SCT-2",
+   "quality": 0.0,
+   "task": "comms_relay",
+   "tier": 1,
+   "unmet": [
+    "radio"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "SCT-3",
+   "quality": 0.0,
+   "task": "comms_relay",
+   "tier": 1,
+   "unmet": [
+    "radio"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "LDR-1",
+   "quality": 0.0,
+   "task": "comms_relay",
+   "tier": 1,
+   "unmet": [
+    "radio"
+   ]
+  },
+  {
+   "eligible": true,
+   "node": "RLY-1",
+   "quality": 1.0,
+   "task": "comms_relay",
+   "tier": 1,
+   "unmet": []
+  },
+  {
+   "eligible": true,
+   "node": "RLY-2",
+   "quality": 1.0,
+   "task": "comms_relay",
+   "tier": 1,
+   "unmet": []
+  },
+  {
+   "eligible": false,
+   "node": "THM-1",
+   "quality": 0.0,
+   "task": "comms_relay",
+   "tier": 1,
+   "unmet": [
+    "radio"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "THM-2",
+   "quality": 0.0,
+   "task": "comms_relay",
+   "tier": 1,
+   "unmet": [
+    "radio"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "ISR-1",
+   "quality": 0.0,
+   "task": "thermal_sweep",
+   "tier": 0,
+   "unmet": [
+    "thermal"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "ISR-2",
+   "quality": 0.0,
+   "task": "thermal_sweep",
+   "tier": 0,
+   "unmet": [
+    "thermal"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "CMP-1",
+   "quality": 0.0,
+   "task": "thermal_sweep",
+   "tier": 0,
+   "unmet": [
+    "thermal"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "CMP-2",
+   "quality": 0.0,
+   "task": "thermal_sweep",
+   "tier": 0,
+   "unmet": [
+    "thermal"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "SCT-1",
+   "quality": 0.0,
+   "task": "thermal_sweep",
+   "tier": 0,
+   "unmet": [
+    "thermal"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "SCT-2",
+   "quality": 0.0,
+   "task": "thermal_sweep",
+   "tier": 0,
+   "unmet": [
+    "thermal"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "SCT-3",
+   "quality": 0.0,
+   "task": "thermal_sweep",
+   "tier": 0,
+   "unmet": [
+    "thermal"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "LDR-1",
+   "quality": 0.0,
+   "task": "thermal_sweep",
+   "tier": 0,
+   "unmet": [
+    "thermal"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "RLY-1",
+   "quality": 0.0,
+   "task": "thermal_sweep",
+   "tier": 0,
+   "unmet": [
+    "thermal"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "RLY-2",
+   "quality": 0.0,
+   "task": "thermal_sweep",
+   "tier": 0,
+   "unmet": [
+    "thermal"
+   ]
+  },
+  {
+   "eligible": true,
+   "node": "THM-1",
+   "quality": 0.88,
+   "task": "thermal_sweep",
+   "tier": 0,
+   "unmet": []
+  },
+  {
+   "eligible": true,
+   "node": "THM-2",
+   "quality": 0.88,
+   "task": "thermal_sweep",
+   "tier": 0,
+   "unmet": []
+  },
+  {
+   "eligible": false,
+   "node": "ISR-1",
+   "quality": 0.0,
+   "task": "thermal_sweep",
+   "tier": 1,
+   "unmet": [
+    "mobility"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "ISR-2",
+   "quality": 0.0,
+   "task": "thermal_sweep",
+   "tier": 1,
+   "unmet": [
+    "mobility"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "CMP-1",
+   "quality": 0.0,
+   "task": "thermal_sweep",
+   "tier": 1,
+   "unmet": [
+    "camera",
+    "mobility"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "CMP-2",
+   "quality": 0.0,
+   "task": "thermal_sweep",
+   "tier": 1,
+   "unmet": [
+    "camera",
+    "mobility"
+   ]
+  },
+  {
+   "eligible": true,
+   "node": "SCT-1",
+   "quality": 1.0,
+   "task": "thermal_sweep",
+   "tier": 1,
+   "unmet": []
+  },
+  {
+   "eligible": true,
+   "node": "SCT-2",
+   "quality": 1.0,
+   "task": "thermal_sweep",
+   "tier": 1,
+   "unmet": []
+  },
+  {
+   "eligible": true,
+   "node": "SCT-3",
+   "quality": 1.0,
+   "task": "thermal_sweep",
+   "tier": 1,
+   "unmet": []
+  },
+  {
+   "eligible": false,
+   "node": "LDR-1",
+   "quality": 0.0,
+   "task": "thermal_sweep",
+   "tier": 1,
+   "unmet": [
+    "camera"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "RLY-1",
+   "quality": 0.0,
+   "task": "thermal_sweep",
+   "tier": 1,
+   "unmet": [
+    "camera"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "RLY-2",
+   "quality": 0.0,
+   "task": "thermal_sweep",
+   "tier": 1,
+   "unmet": [
+    "camera"
+   ]
+  },
+  {
+   "eligible": true,
+   "node": "THM-1",
+   "quality": 1.0,
+   "task": "thermal_sweep",
+   "tier": 1,
+   "unmet": []
+  },
+  {
+   "eligible": true,
+   "node": "THM-2",
+   "quality": 1.0,
+   "task": "thermal_sweep",
+   "tier": 1,
+   "unmet": []
+  },
+  {
+   "eligible": false,
+   "node": "ISR-1",
+   "quality": 0.0,
+   "task": "edge_infer",
+   "tier": 0,
+   "unmet": [
+    "compute"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "ISR-2",
+   "quality": 0.0,
+   "task": "edge_infer",
+   "tier": 0,
+   "unmet": [
+    "compute"
+   ]
+  },
+  {
+   "eligible": true,
+   "node": "CMP-1",
+   "quality": 1.0,
+   "task": "edge_infer",
+   "tier": 0,
+   "unmet": []
+  },
+  {
+   "eligible": true,
+   "node": "CMP-2",
+   "quality": 1.0,
+   "task": "edge_infer",
+   "tier": 0,
+   "unmet": []
+  },
+  {
+   "eligible": false,
+   "node": "SCT-1",
+   "quality": 0.0,
+   "task": "edge_infer",
+   "tier": 0,
+   "unmet": [
+    "compute",
+    "cuda"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "SCT-2",
+   "quality": 0.0,
+   "task": "edge_infer",
+   "tier": 0,
+   "unmet": [
+    "compute",
+    "cuda"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "SCT-3",
+   "quality": 0.0,
+   "task": "edge_infer",
+   "tier": 0,
+   "unmet": [
+    "compute",
+    "cuda"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "LDR-1",
+   "quality": 0.0,
+   "task": "edge_infer",
+   "tier": 0,
+   "unmet": [
+    "compute",
+    "cuda"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "RLY-1",
+   "quality": 0.0,
+   "task": "edge_infer",
+   "tier": 0,
+   "unmet": [
+    "compute",
+    "cuda"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "RLY-2",
+   "quality": 0.0,
+   "task": "edge_infer",
+   "tier": 0,
+   "unmet": [
+    "compute",
+    "cuda"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "THM-1",
+   "quality": 0.0,
+   "task": "edge_infer",
+   "tier": 0,
+   "unmet": [
+    "compute",
+    "cuda"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "THM-2",
+   "quality": 0.0,
+   "task": "edge_infer",
+   "tier": 0,
+   "unmet": [
+    "compute",
+    "cuda"
+   ]
+  },
+  {
+   "eligible": true,
+   "node": "ISR-1",
+   "quality": 1.0,
+   "task": "edge_infer",
+   "tier": 1,
+   "unmet": []
+  },
+  {
+   "eligible": true,
+   "node": "ISR-2",
+   "quality": 1.0,
+   "task": "edge_infer",
+   "tier": 1,
+   "unmet": []
+  },
+  {
+   "eligible": true,
+   "node": "CMP-1",
+   "quality": 1.0,
+   "task": "edge_infer",
+   "tier": 1,
+   "unmet": []
+  },
+  {
+   "eligible": true,
+   "node": "CMP-2",
+   "quality": 1.0,
+   "task": "edge_infer",
+   "tier": 1,
+   "unmet": []
+  },
+  {
+   "eligible": false,
+   "node": "SCT-1",
+   "quality": 0.0,
+   "task": "edge_infer",
+   "tier": 1,
+   "unmet": [
+    "compute"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "SCT-2",
+   "quality": 0.0,
+   "task": "edge_infer",
+   "tier": 1,
+   "unmet": [
+    "compute"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "SCT-3",
+   "quality": 0.0,
+   "task": "edge_infer",
+   "tier": 1,
+   "unmet": [
+    "compute"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "LDR-1",
+   "quality": 0.0,
+   "task": "edge_infer",
+   "tier": 1,
+   "unmet": [
+    "compute"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "RLY-1",
+   "quality": 0.0,
+   "task": "edge_infer",
+   "tier": 1,
+   "unmet": [
+    "compute"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "RLY-2",
+   "quality": 0.0,
+   "task": "edge_infer",
+   "tier": 1,
+   "unmet": [
+    "compute"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "THM-1",
+   "quality": 0.0,
+   "task": "edge_infer",
+   "tier": 1,
+   "unmet": [
+    "compute"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "THM-2",
+   "quality": 0.0,
+   "task": "edge_infer",
+   "tier": 1,
+   "unmet": [
+    "compute"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "ISR-1",
+   "quality": 0.0,
+   "task": "perimeter",
+   "tier": 0,
+   "unmet": [
+    "mobility"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "ISR-2",
+   "quality": 0.0,
+   "task": "perimeter",
+   "tier": 0,
+   "unmet": [
+    "mobility"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "CMP-1",
+   "quality": 0.0,
+   "task": "perimeter",
+   "tier": 0,
+   "unmet": [
+    "camera",
+    "mobility"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "CMP-2",
+   "quality": 0.0,
+   "task": "perimeter",
+   "tier": 0,
+   "unmet": [
+    "camera",
+    "mobility"
+   ]
+  },
+  {
+   "eligible": true,
+   "node": "SCT-1",
+   "quality": 1.0,
+   "task": "perimeter",
+   "tier": 0,
+   "unmet": []
+  },
+  {
+   "eligible": true,
+   "node": "SCT-2",
+   "quality": 1.0,
+   "task": "perimeter",
+   "tier": 0,
+   "unmet": []
+  },
+  {
+   "eligible": true,
+   "node": "SCT-3",
+   "quality": 1.0,
+   "task": "perimeter",
+   "tier": 0,
+   "unmet": []
+  },
+  {
+   "eligible": false,
+   "node": "LDR-1",
+   "quality": 0.0,
+   "task": "perimeter",
+   "tier": 0,
+   "unmet": [
+    "camera",
+    "mobility"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "RLY-1",
+   "quality": 0.0,
+   "task": "perimeter",
+   "tier": 0,
+   "unmet": [
+    "camera",
+    "mobility"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "RLY-2",
+   "quality": 0.0,
+   "task": "perimeter",
+   "tier": 0,
+   "unmet": [
+    "camera",
+    "mobility"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "THM-1",
+   "quality": 0.0,
+   "task": "perimeter",
+   "tier": 0,
+   "unmet": [
+    "camera",
+    "mobility"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "THM-2",
+   "quality": 0.0,
+   "task": "perimeter",
+   "tier": 0,
+   "unmet": [
+    "camera",
+    "mobility"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "ISR-1",
+   "quality": 0.0,
+   "task": "perimeter",
+   "tier": 1,
+   "unmet": [
+    "mobility"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "ISR-2",
+   "quality": 0.0,
+   "task": "perimeter",
+   "tier": 1,
+   "unmet": [
+    "mobility"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "CMP-1",
+   "quality": 0.0,
+   "task": "perimeter",
+   "tier": 1,
+   "unmet": [
+    "mobility"
+   ]
+  },
+  {
+   "eligible": false,
+   "node": "CMP-2",
+   "quality": 0.0,
+   "task": "perimeter",
+   "tier": 1,
+   "unmet": [
+    "mobility"
+   ]
+  },
+  {
+   "eligible": true,
+   "node": "SCT-1",
+   "quality": 1.0,
+   "task": "perimeter",
+   "tier": 1,
+   "unmet": []
+  },
+  {
+   "eligible": true,
+   "node": "SCT-2",
+   "quality": 1.0,
+   "task": "perimeter",
+   "tier": 1,
+   "unmet": []
+  },
+  {
+   "eligible": true,
+   "node": "SCT-3",
+   "quality": 1.0,
+   "task": "perimeter",
+   "tier": 1,
+   "unmet": []
+  },
+  {
+   "eligible": true,
+   "node": "LDR-1",
+   "quality": 1.0,
+   "task": "perimeter",
+   "tier": 1,
+   "unmet": []
+  },
+  {
+   "eligible": true,
+   "node": "RLY-1",
+   "quality": 1.0,
+   "task": "perimeter",
+   "tier": 1,
+   "unmet": []
+  },
+  {
+   "eligible": true,
+   "node": "RLY-2",
+   "quality": 1.0,
+   "task": "perimeter",
+   "tier": 1,
+   "unmet": []
+  },
+  {
+   "eligible": true,
+   "node": "THM-1",
+   "quality": 1.0,
+   "task": "perimeter",
+   "tier": 1,
+   "unmet": []
+  },
+  {
+   "eligible": true,
+   "node": "THM-2",
+   "quality": 1.0,
+   "task": "perimeter",
+   "tier": 1,
+   "unmet": []
+  }
+ ],
+ "preset": "baseline",
+ "reconciliation": {
+  "at": 60,
+  "conflictsFound": 5,
+  "entries": {
+   "beacons": 9,
+   "node.X.status": "ACTIVE",
+   "node.Y.status": "ACTIVE",
+   "task_owner.map": {
+    "assignee": "ISR-1",
+    "match_quality": 0.75,
+    "progress": 0.6
+   },
+   "task_owner.rly": {
+    "assignee": "RLY-1",
+    "match_quality": 1.0,
+    "progress": 0.1
+   },
+   "task_owner.trk": {
+    "assignee": "SCT-1",
+    "match_quality": 0.9,
+    "progress": 0.22
+   },
+   "zones": [
+    "A1",
+    "B2",
+    "C3",
+    "D4"
+   ]
+  },
+  "entriesMerged": 6,
+  "lamport": 16,
+  "ops": [
+   [
+    "a",
+    0,
+    "zones",
+    [
+     "A1"
+    ],
+    "SET_LIKE"
+   ],
+   [
+    "a",
+    0,
+    "beacons",
+    3,
+    "COUNTER"
+   ],
+   [
+    "a",
+    5,
+    "zones",
+    [
+     "A1",
+     "B2"
+    ],
+    "SET_LIKE"
+   ],
+   [
+    "b",
+    5,
+    "zones",
+    [
+     "C3",
+     "D4"
+    ],
+    "SET_LIKE"
+   ],
+   [
+    "a",
+    10,
+    "task_owner.map",
+    {
+     "assignee": "ISR-1",
+     "match_quality": 0.75,
+     "progress": 0.6
+    },
+    "EXCLUSIVE_OWNERSHIP"
+   ],
+   [
+    "b",
+    12,
+    "task_owner.map",
+    {
+     "assignee": "SCT-3",
+     "match_quality": 0.82,
+     "progress": 0.3
+    },
+    "EXCLUSIVE_OWNERSHIP"
+   ],
+   [
+    "a",
+    14,
+    "task_owner.trk",
+    {
+     "assignee": "ISR-2",
+     "match_quality": 0.5,
+     "progress": 0.2
+    },
+    "EXCLUSIVE_OWNERSHIP"
+   ],
+   [
+    "b",
+    15,
+    "task_owner.trk",
+    {
+     "assignee": "SCT-1",
+     "match_quality": 0.9,
+     "progress": 0.22
+    },
+    "EXCLUSIVE_OWNERSHIP"
+   ],
+   [
+    "a",
+    16,
+    "task_owner.rly",
+    {
+     "assignee": "RLY-2",
+     "match_quality": 1.0,
+     "progress": 0.1
+    },
+    "EXCLUSIVE_OWNERSHIP"
+   ],
+   [
+    "b",
+    16,
+    "task_owner.rly",
+    {
+     "assignee": "RLY-1",
+     "match_quality": 1.0,
+     "progress": 0.1
+    },
+    "EXCLUSIVE_OWNERSHIP"
+   ],
+   [
+    "a",
+    20,
+    "node.X.status",
+    "UNREACHABLE",
+    "RESOURCE"
+   ],
+   [
+    "b",
+    40,
+    "node.X.status",
+    "ACTIVE",
+    "RESOURCE"
+   ],
+   [
+    "a",
+    41,
+    "node.Y.status",
+    "ACTIVE",
+    "RESOURCE"
+   ],
+   [
+    "b",
+    42,
+    "node.Y.status",
+    "UNREACHABLE",
+    "RESOURCE"
+   ],
+   [
+    "b",
+    45,
+    "task_owner.remote_only",
+    {
+     "assignee": "THM-2",
+     "match_quality": 1.0,
+     "progress": 0.4
+    },
+    "EXCLUSIVE_OWNERSHIP"
+   ],
+   [
+    "a",
+    50,
+    "beacons",
+    9,
+    "COUNTER"
+   ],
+   [
+    "b",
+    50,
+    "beacons",
+    7,
+    "COUNTER"
+   ]
+  ],
+  "resolutions": {
+   "node.X.status": {
+    "reason": "Remote observation is 20.0s newer",
+    "strategy": "RESOURCE_RECENCY",
+    "winner": "b"
+   },
+   "node.Y.status": {
+    "reason": "Within drift margin; local provenance score 1.00 >= remote 1.00",
+    "strategy": "RESOURCE_PROVENANCE",
+    "winner": "a"
+   },
+   "task_owner.map": {
+    "reason": "Higher progress: ISR-1 at 0.60 vs SCT-3 at 0.30",
+    "strategy": "EXCLUSIVE_OWNERSHIP_CASCADE",
+    "winner": "a"
+   },
+   "task_owner.rly": {
+    "reason": "Tiebreak: lower node_id RLY-1 < RLY-2",
+    "strategy": "EXCLUSIVE_OWNERSHIP_CASCADE",
+    "winner": "b"
+   },
+   "task_owner.trk": {
+    "reason": "Higher match quality: SCT-1 at 0.90",
+    "strategy": "EXCLUSIVE_OWNERSHIP_CASCADE",
+    "winner": "b"
+   }
+  },
+  "sideEffects": [
+   [
+    "NOTIFY_WINNER",
+    "ISR-1",
+    "task_owner.map"
+   ],
+   [
+    "NOTIFY_WINNER",
+    "RLY-1",
+    "task_owner.rly"
+   ],
+   [
+    "NOTIFY_WINNER",
+    "SCT-1",
+    "task_owner.trk"
+   ],
+   [
+    "RELEASE_EXECUTOR",
+    "ISR-2",
+    "task_owner.trk"
+   ],
+   [
+    "RELEASE_EXECUTOR",
+    "RLY-2",
+    "task_owner.rly"
+   ],
+   [
+    "RELEASE_EXECUTOR",
+    "SCT-3",
+    "task_owner.map"
+   ]
+  ]
+ }
+}
